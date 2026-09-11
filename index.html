@@ -1,47 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#060a14">
+  <meta name="description" content="SACHER10610 portfolio">
+  <meta property="og:title" content="SACHER10610">
+  <meta property="og:description" content="SACHER10610 portfolio">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://sacher10610.github.io/assets/images/room-main.webp">
   <title>SACHER10610</title>
-
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
-    }
-
-    main {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 3rem;
-      letter-spacing: 0.15em;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #999;
-      letter-spacing: 0.08em;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/style.css?v=20260911-5">
+  <script src="/js/main.js?v=20260911-5" defer></script>
+  <script src="/js/room.js?v=20260911-5" defer></script>
 </head>
+<body class="home">
+  <a class="skip-link" href="#room-navigation">ナビゲーションへ移動</a>
 
-<body>
+  <header class="site-brand">
+    <a href="/" aria-label="SACHER10610 トップページ">
+      <span aria-hidden="true">SACHER10610</span>
+    </a>
+  </header>
 
-  <main>
-    <div>
-      <h1>SACHER10610</h1>
-      <p>Illustration / Movie / Character / Game</p>
+  <main class="room" aria-label="夜のマコトの部屋">
+    <div class="room__canvas" aria-hidden="true">
+      <img
+        class="room__background"
+        width="1920"
+        height="1080"
+        alt=""
+        decoding="async"
+        fetchpriority="high"
+      >
     </div>
-  </main>
 
+    <nav class="room__hotspots room__canvas" id="room-navigation" aria-label="作品カテゴリー">
+      <a
+        class="hotspot hotspot--up"
+        data-hotspot="illustration"
+        href="/illustration/"
+        aria-label="01 ILLUSTRATION：モニターからイラスト作品へ"
+        style="--x: 66.5%; --y: 28%; --w: 24%; --h: 29%; --line: 3.5rem;"
+      >
+        <span class="hotspot__dot" aria-hidden="true"></span>
+        <span class="hotspot__line" aria-hidden="true"></span>
+        <span class="hotspot__label" aria-hidden="true">
+          <span class="hotspot__number">01</span>
+          <span>ILLUSTRATION</span>
+        </span>
+      </a>
+
+      <a
+        class="hotspot hotspot--left"
+        data-hotspot="movie"
+        href="/movie/"
+        aria-label="02 MOVIE：カメラから映像作品へ"
+        style="--x: 58.7%; --y: 28%; --w: 7%; --h: 11%; --line: 3rem;"
+      >
+        <span class="hotspot__dot" aria-hidden="true"></span>
+        <span class="hotspot__line" aria-hidden="true"></span>
+        <span class="hotspot__label" aria-hidden="true">
+          <span class="hotspot__number">02</span>
+          <span>MOVIE</span>
+        </span>
+      </a>
+
+      <a
+        class="hotspot hotspot--left"
+        data-hotspot="music"
+        href="/music/"
+        aria-label="03 MUSIC：ヘッドホンから音楽作品へ"
+        style="--x: 58.6%; --y: 36.5%; --w: 7%; --h: 15%; --line: 4rem;"
+      >
+        <span class="hotspot__dot" aria-hidden="true"></span>
+        <span class="hotspot__line" aria-hidden="true"></span>
+        <span class="hotspot__label" aria-hidden="true">
+          <span class="hotspot__number">03</span>
+          <span>MUSIC</span>
+        </span>
+      </a>
+
+      <a
+        class="hotspot hotspot--left"
+        data-hotspot="game"
+        href="/game/"
+        aria-label="04 GAME：コントローラーからゲーム作品へ"
+        style="--x: 87.5%; --y: 53%; --w: 10.5%; --h: 13%; --line: 3.5rem;"
+      >
+        <span class="hotspot__dot" aria-hidden="true"></span>
+        <span class="hotspot__line" aria-hidden="true"></span>
+        <span class="hotspot__label" aria-hidden="true">
+          <span class="hotspot__number">04</span>
+          <span>GAME</span>
+        </span>
+      </a>
+
+      <a
+        class="hotspot hotspot--left"
+        data-hotspot="characters"
+        href="/characters/"
+        aria-label="05 CHARACTERS：ぬいぐるみからキャラクター作品へ"
+        style="--x: 42.7%; --y: 41.5%; --w: 8%; --h: 12%; --line: 4.25rem;"
+      >
+        <span class="hotspot__dot" aria-hidden="true"></span>
+        <span class="hotspot__line" aria-hidden="true"></span>
+        <span class="hotspot__label" aria-hidden="true">
+          <span class="hotspot__number">05</span>
+          <span>CHARACTERS</span>
+        </span>
+      </a>
+    </nav>
+
+    <nav class="mobile-nav" aria-label="作品カテゴリー">
+      <a href="/illustration/"><span>01</span>ILLUSTRATION</a>
+      <a href="/movie/"><span>02</span>MOVIE</a>
+      <a href="/music/"><span>03</span>MUSIC</a>
+      <a href="/game/"><span>04</span>GAME</a>
+      <a href="/characters/"><span>05</span>CHARACTERS</a>
+    </nav>
+  </main>
 </body>
 </html>
