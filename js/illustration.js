@@ -159,7 +159,15 @@
     }
   ];
 
-  const gallery = document.querySelector(".gallery");
+  const FEATURED_COUNT = 5;
+  const FEATURED_SESSION_KEY = "sacher10610:illustration-featured";
+  const featuredGallery = document.querySelector(".gallery--featured");
+  const fullGallery = document.querySelector(".gallery--full");
+  const featuredView = document.querySelector(".gallery-view--featured");
+  const fullView = document.querySelector(".gallery-view--full");
+  const viewAllButtons = [...document.querySelectorAll(".gallery-view__all")];
+  const featuredButton = document.querySelector(".gallery-view__featured");
+  const galleryTotals = document.querySelectorAll(".gallery-total");
   const filters = document.querySelector(".gallery-filters");
   const lightbox = document.querySelector(".lightbox");
   const lightboxMedia = document.querySelector(".lightbox__media");
@@ -180,13 +188,18 @@
   const BUTTON_ZOOM_STEP = 0.25;
 
   if (
-    !gallery || !filters || !lightbox || !lightboxMedia || !lightboxStage
+    !featuredGallery || !fullGallery || !featuredView || !fullView
+    || viewAllButtons.length === 0 || !featuredButton || !filters
+    || !lightbox || !lightboxMedia || !lightboxStage
     || !zoomOutButton || !zoomInButton || !zoomResetButton || !zoomLevel
   ) return;
 
   let activeCategory = "ALL";
+  let currentLightboxScope = "featured";
   let currentIllustrationIndex = 0;
   let lastFocusedElement = null;
+  let lastViewAllButton = viewAllButtons[0];
+  let fullGalleryRendered = false;
   let zoomScale = MIN_ZOOM;
   let panX = 0;
   let panY = 0;
@@ -209,6 +222,67 @@
 
   const works = illustrations.map(normaliseWork);
 
+  function workKey(work, index) {
+    return work.src || `${work.title}::${index}`;
+  }
+
+  function shuffledIndexes(indexes) {
+    const shuffled = [...indexes];
+
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+
+    return shuffled;
+  }
+
+  function saveFeaturedIndexes(indexes) {
+    try {
+      const keys = indexes.map((index) => workKey(works[index], index));
+      sessionStorage.setItem(FEATURED_SESSION_KEY, JSON.stringify(keys));
+    } catch {
+      // A fresh random selection is still available when storage is disabled.
+    }
+  }
+
+  function chooseFeaturedIndexes() {
+    const targetCount = Math.min(FEATURED_COUNT, works.length);
+    if (targetCount === 0) return [];
+    if (works.length <= FEATURED_COUNT) return works.map((_, index) => index);
+
+    const indexesByKey = new Map(
+      works.map((work, index) => [workKey(work, index), index])
+    );
+    let savedIndexes = [];
+
+    try {
+      const savedKeys = JSON.parse(sessionStorage.getItem(FEATURED_SESSION_KEY) || "[]");
+      if (Array.isArray(savedKeys)) {
+        savedIndexes = savedKeys
+          .map((key) => indexesByKey.get(key))
+          .filter((index) => Number.isInteger(index));
+        savedIndexes = [...new Set(savedIndexes)].slice(0, targetCount);
+      }
+    } catch {
+      savedIndexes = [];
+    }
+
+    const selected = new Set(savedIndexes);
+    const remaining = works
+      .map((_, index) => index)
+      .filter((index) => !selected.has(index));
+    const featuredIndexes = [
+      ...savedIndexes,
+      ...shuffledIndexes(remaining).slice(0, targetCount - savedIndexes.length)
+    ];
+
+    saveFeaturedIndexes(featuredIndexes);
+    return featuredIndexes;
+  }
+
+  const featuredIndexes = chooseFeaturedIndexes();
+
   function createPlaceholder(index, title, ratio = "4 / 5") {
     const placeholder = document.createElement("div");
     placeholder.className = "work__placeholder";
@@ -222,14 +296,14 @@
     return placeholder;
   }
 
-  function createImage(work, index, onError) {
+  function createImage(work, priorityIndex, onError) {
     const image = document.createElement("img");
     image.className = "work__image";
     image.src = work.src;
     image.alt = work.alt || work.title;
     image.decoding = "async";
-    image.loading = index < 2 ? "eager" : "lazy";
-    image.fetchPriority = index === 0 ? "high" : "auto";
+    image.loading = priorityIndex < 2 ? "eager" : "lazy";
+    image.fetchPriority = priorityIndex === 0 ? "high" : "auto";
     image.addEventListener("error", onError, { once: true });
     return image;
   }
@@ -238,7 +312,8 @@
     return [work.category, work.year].filter(Boolean).join(" / ");
   }
 
-  function createWork(work, index) {
+  function createWork(work, index, options = {}) {
+    const { scope = "featured", displayIndex = index, compact = false } = options;
     const article = document.createElement("article");
     article.className = `gallery__work gallery__work--${work.size}`;
     article.dataset.index = String(index);
@@ -256,7 +331,8 @@
     const placeholder = createPlaceholder(index, work.title, work.ratio);
     if (work.src) {
       placeholder.hidden = true;
-      const image = createImage(work, index, () => {
+      const priorityIndex = scope === "featured" ? displayIndex : Number.MAX_SAFE_INTEGER;
+      const image = createImage(work, priorityIndex, () => {
         image.hidden = true;
         placeholder.hidden = false;
       });
@@ -274,7 +350,7 @@
     caption.append(title);
 
     const detailsText = workDetails(work);
-    if (detailsText) {
+    if (detailsText && !compact) {
       const details = document.createElement("p");
       details.className = "work__details";
       details.textContent = detailsText;
@@ -284,21 +360,34 @@
     trigger.append(media);
     article.append(trigger, caption);
 
-    if (work.description) {
+    if (work.description && !compact) {
       const description = document.createElement("p");
       description.className = "work__description";
       description.textContent = work.description;
       article.append(description);
     }
 
-    trigger.addEventListener("click", () => openLightbox(index, trigger));
+    trigger.addEventListener("click", () => openLightbox(index, trigger, scope));
     return article;
   }
 
-  function renderGallery() {
+  function renderFeaturedGallery() {
     const fragment = document.createDocumentFragment();
-    works.forEach((work, index) => fragment.append(createWork(work, index)));
-    gallery.replaceChildren(fragment);
+    featuredIndexes.forEach((index, displayIndex) => {
+      fragment.append(createWork(works[index], index, { scope: "featured", displayIndex }));
+    });
+    featuredGallery.replaceChildren(fragment);
+  }
+
+  function renderFullGallery() {
+    if (fullGalleryRendered) return;
+
+    const fragment = document.createDocumentFragment();
+    works.forEach((work, index) => {
+      fragment.append(createWork(work, index, { scope: "full", compact: true }));
+    });
+    fullGallery.replaceChildren(fragment);
+    fullGalleryRendered = true;
   }
 
   function categoryNames() {
@@ -308,7 +397,7 @@
   function applyCategory(category) {
     activeCategory = category;
 
-    for (const workElement of gallery.querySelectorAll(".gallery__work")) {
+    for (const workElement of fullGallery.querySelectorAll(".gallery__work")) {
       workElement.hidden = category !== "ALL"
         && workElement.dataset.category !== category;
     }
@@ -319,6 +408,7 @@
   }
 
   function renderFilters() {
+    filters.replaceChildren();
     const categories = categoryNames();
     if (categories.length < 2) return;
 
@@ -335,8 +425,36 @@
   }
 
   function visibleIndexes() {
-    return [...gallery.querySelectorAll(".gallery__work:not([hidden])")]
+    const activeGallery = currentLightboxScope === "full" ? fullGallery : featuredGallery;
+    return [...activeGallery.querySelectorAll(".gallery__work:not([hidden])")]
       .map((element) => Number(element.dataset.index));
+  }
+
+  function updateGalleryTotals() {
+    const label = `${String(works.length).padStart(3, "0")} WORKS`;
+    galleryTotals.forEach((element) => {
+      element.textContent = label;
+    });
+  }
+
+  function showFullGallery(event) {
+    if (event?.currentTarget instanceof HTMLElement) {
+      lastViewAllButton = event.currentTarget;
+    }
+    renderFullGallery();
+    renderFilters();
+    applyCategory("ALL");
+    featuredView.hidden = true;
+    fullView.hidden = false;
+    fullView.scrollIntoView({ block: "start" });
+    featuredButton.focus({ preventScroll: true });
+  }
+
+  function showFeaturedGallery() {
+    fullView.hidden = true;
+    featuredView.hidden = false;
+    featuredView.scrollIntoView({ block: "start" });
+    lastViewAllButton.focus({ preventScroll: true });
   }
 
   function clamp(value, minimum, maximum) {
@@ -477,8 +595,9 @@
     nextButton.disabled = !hasMultipleWorks;
   }
 
-  function openLightbox(index, trigger) {
+  function openLightbox(index, trigger, scope = "featured") {
     currentIllustrationIndex = index;
+    currentLightboxScope = scope;
     lastFocusedElement = trigger;
     resetZoom(false);
     updateLightbox();
@@ -537,6 +656,8 @@
   }
 
   closeButton.addEventListener("click", closeLightbox);
+  viewAllButtons.forEach((button) => button.addEventListener("click", showFullGallery));
+  featuredButton.addEventListener("click", showFeaturedGallery);
   previousButton.addEventListener("click", () => moveLightbox(-1));
   nextButton.addEventListener("click", () => moveLightbox(1));
   zoomOutButton.addEventListener("click", () => zoomBy(-BUTTON_ZOOM_STEP));
@@ -666,7 +787,7 @@
     applyZoom(false);
   });
 
-  renderGallery();
-  renderFilters();
+  renderFeaturedGallery();
+  updateGalleryTotals();
   applyZoom(false);
 })();

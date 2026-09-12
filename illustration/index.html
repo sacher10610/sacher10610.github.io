@@ -6,11 +6,13 @@
   <meta name="theme-color" content="#060a14">
   <meta name="description" content="SACHER10610 illustration gallery">
   <title>ILLUSTRATION — SACHER10610</title>
-  <link rel="stylesheet" href="/css/illustration.css?v=20260911-3">
-  <script src="/js/illustration.js?v=20260911-3" defer></script>
+  <link rel="stylesheet" href="/css/ambient-room.css?v=20260912-1">
+  <link rel="stylesheet" href="/css/illustration.css?v=20260912-2">
+  <script src="/js/ambient-room.js?v=20260912-1" defer></script>
+  <script src="/js/illustration.js?v=20260912-2" defer></script>
 </head>
 <body id="top">
-  <a class="skip-link" href="#gallery">作品一覧へ移動</a>
+  <a class="skip-link" href="#featured-gallery">作品一覧へ移動</a>
 
   <header class="gallery-header">
     <a class="gallery-brand" href="/" aria-label="SACHER10610 トップページへ戻る">
@@ -27,10 +29,36 @@
     <section class="gallery-lead" aria-labelledby="gallery-title">
       <p class="gallery-lead__number" aria-hidden="true">01</p>
       <h1 id="gallery-title">ILLUSTRATION</h1>
-      <div class="gallery-filters" aria-label="作品カテゴリー"></div>
+      <div class="gallery-lead__subrow">
+        <p class="gallery-lead__mode">FEATURED WORKS</p>
+        <button class="gallery-view__all" type="button">
+          VIEW ALL — <span class="gallery-total">000 WORKS</span>
+        </button>
+      </div>
     </section>
 
-    <section class="gallery" id="gallery" aria-label="イラストレーション作品一覧"></section>
+    <section class="gallery-view gallery-view--featured" aria-label="注目作品">
+      <div class="gallery gallery--featured" id="featured-gallery"></div>
+
+      <div class="gallery-view__switch">
+        <button class="gallery-view__all" type="button">
+          VIEW ALL — <span class="gallery-total">000 WORKS</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="gallery-view gallery-view--full" aria-label="全作品一覧" hidden>
+      <div class="full-gallery__bar">
+        <div>
+          <p class="full-gallery__eyebrow">GALLERY</p>
+          <p class="full-gallery__count gallery-total">000 WORKS</p>
+        </div>
+        <button class="gallery-view__featured" type="button">← FEATURED</button>
+      </div>
+
+      <div class="gallery-filters" aria-label="作品カテゴリー"></div>
+      <div class="gallery gallery--full" id="full-gallery"></div>
+    </section>
   </main>
 
   <footer class="gallery-footer">

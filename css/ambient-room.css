@@ -1,0 +1,54 @@
+:root {
+  --ambient-overlay-color: rgba(3, 7, 14, 0.86);
+  --ambient-image-opacity: 0.92;
+  --ambient-blur: 4px;
+  --ambient-saturation: 0.72;
+}
+
+.ambient-room {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background: #060a14;
+  pointer-events: none;
+}
+
+.ambient-room__image {
+  position: absolute;
+  inset: calc(var(--ambient-blur) * -2);
+  width: calc(100% + (var(--ambient-blur) * 4));
+  height: calc(100% + (var(--ambient-blur) * 4));
+  object-fit: cover;
+  object-position: center;
+  filter: blur(var(--ambient-blur)) saturate(var(--ambient-saturation));
+  opacity: 0;
+  transform: scale(1.01);
+  transition: opacity 280ms ease;
+}
+
+.ambient-room__image.is-loaded {
+  opacity: var(--ambient-image-opacity);
+}
+
+.ambient-room::after {
+  position: absolute;
+  inset: 0;
+  background: var(--ambient-overlay-color);
+  content: "";
+}
+
+.gallery-header,
+.gallery-footer,
+body > main,
+.coming-header,
+.coming-main {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-room__image {
+    transition-duration: 0.01ms;
+  }
+}

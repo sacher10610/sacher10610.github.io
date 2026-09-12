@@ -60,12 +60,25 @@ a {
 .site-brand {
   position: fixed;
   z-index: 20;
-  top: clamp(1.6rem, 4.5vw, 4.5rem);
+  top: clamp(0.95rem, 3.55vw, 3.45rem);
   left: clamp(1.5rem, 4.4vw, 4.75rem);
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
   margin: 0;
 }
 
-.site-brand a {
+.site-brand__author {
+  margin: 0 0 0.5rem;
+  color: rgba(131, 144, 168, 0.68);
+  font-size: clamp(0.48rem, 0.52vw, 0.57rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+}
+
+.site-brand__title {
   display: inline-flex;
   align-items: center;
   gap: 1rem;
@@ -78,7 +91,7 @@ a {
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
 }
 
-.site-brand a::after {
+.site-brand__title::after {
   width: clamp(1.75rem, 3vw, 3rem);
   height: 1px;
   background: rgba(181, 154, 100, 0.72);
@@ -87,13 +100,47 @@ a {
   transition: box-shadow 240ms ease;
 }
 
-.home.is-hotspot-active .site-brand a::after {
+.home.is-hotspot-active .site-brand__title::after {
   box-shadow: inset clamp(0.7rem, 1.25vw, 1.25rem) 0 0 rgba(66, 105, 200, 0.62);
 }
 
-.site-brand a:focus-visible {
+.site-brand__title:focus-visible {
   outline: 1px solid var(--off-white);
   outline-offset: 0.65rem;
+}
+
+.social-links {
+  display: flex;
+  margin-top: 0.62rem;
+  align-items: center;
+}
+
+.social-link {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--blue-gray);
+  opacity: 0.62;
+  text-decoration: none;
+  transition: color 200ms ease, opacity 200ms ease;
+}
+
+.social-link__icon {
+  display: block;
+  width: 1.06rem;
+  height: 1.06rem;
+  overflow: visible;
+}
+
+.social-link:is(:hover, :focus-visible) {
+  color: rgba(237, 240, 234, 0.94);
+  opacity: 1;
+}
+
+.social-link:focus-visible {
+  outline: 1px solid rgba(66, 105, 200, 0.72);
+  outline-offset: -3px;
 }
 
 .room {
@@ -490,17 +537,39 @@ div.room__canvas {
   }
 
   .site-brand {
-    top: max(1.35rem, env(safe-area-inset-top));
+    top: max(0.7rem, env(safe-area-inset-top));
     left: 1.3rem;
   }
 
-  .site-brand a {
+  .site-brand__author {
+    margin-bottom: 0.38rem;
+    font-size: 0.47rem;
+  }
+
+  .site-brand__title {
     font-size: 0.68rem;
     letter-spacing: 0.31em;
   }
 
-  .site-brand a::after {
+  .site-brand__title::after {
     width: 1.6rem;
+  }
+
+  .social-links {
+    margin-top: 0.42rem;
+  }
+
+  .social-link {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .social-link:nth-child(1) .social-link__icon {
+    transform: translateX(0.44rem);
+  }
+
+  .social-link:nth-child(3) .social-link__icon {
+    transform: translateX(-0.44rem);
   }
 
   .mobile-nav {

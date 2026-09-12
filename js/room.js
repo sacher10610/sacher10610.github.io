@@ -4,6 +4,7 @@
   const KEEP_ROOM_STATE_DURING_SESSION = false;
   const FALLBACK_ROOM_SRC = "/assets/images/room-main.webp";
   const SESSION_STORAGE_KEY = "sacher10610:room-state";
+  const AMBIENT_STORAGE_KEY = "sacher10610:ambient-room";
   const FORCE_STATE_QUERY_PARAMETER = "room";
 
   // Optional hotspot overrides use: { illustration: { x, y, width, height, line } }
@@ -119,6 +120,14 @@
     }
   }
 
+  function saveAmbientRoomState(stateId, src) {
+    try {
+      sessionStorage.setItem(AMBIENT_STORAGE_KEY, JSON.stringify({ stateId, src }));
+    } catch {
+      // Subpages fall back to room-main when storage is unavailable.
+    }
+  }
+
   async function sourceExists(src) {
     try {
       const response = await fetch(src, { method: "HEAD", cache: "no-store" });
@@ -158,6 +167,7 @@
 
     image.addEventListener("error", () => {
       if (image.dataset.source === "selected") {
+        saveAmbientRoomState("fallback", FALLBACK_ROOM_SRC);
         displayBackground(image, FALLBACK_ROOM_SRC, "fallback");
       } else {
         image.dataset.source = "unavailable";
@@ -179,6 +189,7 @@
 
     const eligibleStates = getEligibleStates();
     if (eligibleStates.length === 0) {
+      saveAmbientRoomState("fallback", FALLBACK_ROOM_SRC);
       displayBackground(background, FALLBACK_ROOM_SRC, "fallback");
       announceRoomState("fallback", "fallback");
       return;
@@ -189,6 +200,7 @@
       ?? chooseWeightedState(eligibleStates);
 
     if (!state) {
+      saveAmbientRoomState("fallback", FALLBACK_ROOM_SRC);
       displayBackground(background, FALLBACK_ROOM_SRC, "fallback");
       announceRoomState("fallback", "fallback");
       return;
@@ -200,10 +212,12 @@
 
     const selectedSourceExists = await sourceExists(state.src);
     if (selectedSourceExists) {
+      saveAmbientRoomState(state.id, state.src);
       applyHotspotCoordinates(state);
       displayBackground(background, state.src, "selected");
       announceRoomState(state.id, "selected");
     } else {
+      saveAmbientRoomState("fallback", FALLBACK_ROOM_SRC);
       displayBackground(background, FALLBACK_ROOM_SRC, "fallback");
       announceRoomState(state.id, "fallback");
     }
