@@ -181,8 +181,8 @@ a {
   min-height: auto;
   align-content: start;
   column-gap: clamp(3rem, 7vw, 8rem);
-  row-gap: clamp(3rem, 5vw, 5rem);
-  padding-top: clamp(1.25rem, 1.8vw, 1.75rem);
+  row-gap: clamp(1.25rem, 2vw, 2rem);
+  padding-top: 0;
 }
 
 .coming-page--game .coming-header {
@@ -503,8 +503,8 @@ a {
 
   .coming-page--game .coming-main {
     grid-template-columns: 1fr;
-    gap: 3.25rem;
-    padding-top: 1rem;
+    gap: clamp(1.5rem, 6vw, 2.25rem);
+    padding-top: 0;
   }
 
   .game-lead {
