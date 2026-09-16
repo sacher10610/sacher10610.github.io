@@ -157,6 +157,104 @@ a {
   line-height: 1.4;
 }
 
+.game-project__type,
+.game-project__credit {
+  margin: 0;
+  color: rgba(131, 144, 168, 0.58);
+  font-size: 0.48rem;
+  letter-spacing: 0.18em;
+  line-height: 1.5;
+}
+
+.game-project__type {
+  margin-bottom: 0.85rem;
+}
+
+.game-project__credit {
+  margin-top: 1.15rem;
+}
+
+.coming-page--game .coming-main {
+  grid-template-columns: minmax(16rem, 0.72fr) minmax(24rem, 1.28fr);
+  gap: clamp(3rem, 7vw, 8rem);
+}
+
+.coming-page--game .coming-status {
+  width: 100%;
+}
+
+.game-preview {
+  display: block;
+  width: min(100%, 58rem);
+  justify-self: end;
+  color: rgba(131, 144, 168, 0.68);
+  text-decoration: none;
+}
+
+.game-preview__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  border: 1px solid rgba(131, 144, 168, 0.3);
+  background: #060a14;
+  filter: brightness(0.86) saturate(0.82);
+  object-fit: cover;
+  transition: border-color 220ms ease, filter 220ms ease, opacity 220ms ease;
+}
+
+.game-preview__meta {
+  display: flex;
+  margin-top: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.48rem;
+  letter-spacing: 0.18em;
+  line-height: 1.4;
+  transition: color 220ms ease;
+}
+
+.game-preview:is(:hover, :focus-visible) {
+  color: rgba(237, 240, 234, 0.9);
+  outline: none;
+}
+
+.game-preview:is(:hover, :focus-visible) .game-preview__image {
+  border-color: rgba(66, 105, 200, 0.72);
+  filter: brightness(0.96) saturate(0.9);
+}
+
+.game-preview:focus-visible .game-preview__image {
+  outline: 1px solid rgba(237, 240, 234, 0.78);
+  outline-offset: 0.35rem;
+}
+
+.coming-launch {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 1.4rem;
+  margin-top: 2rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(181, 154, 100, 0.48);
+  color: rgba(237, 240, 234, 0.92);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.coming-launch span {
+  color: var(--gold);
+}
+
+.coming-launch:is(:hover, :focus-visible) {
+  border-color: rgba(181, 154, 100, 0.9);
+  background: rgba(181, 154, 100, 0.09);
+  outline: none;
+}
+
 .coming-motif {
   position: relative;
   margin-top: clamp(3rem, 6vw, 6rem);
@@ -360,6 +458,21 @@ a {
     align-items: start;
     padding-top: clamp(5rem, 18vh, 9rem);
     padding-bottom: max(3rem, env(safe-area-inset-bottom));
+  }
+
+  .coming-page--game .coming-main {
+    grid-template-columns: 1fr;
+    gap: 3.25rem;
+    padding-top: clamp(3rem, 10vh, 5rem);
+  }
+
+  .game-preview {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .game-preview__meta {
+    font-size: 0.45rem;
   }
 
   .coming-status {
