@@ -93,13 +93,15 @@ a {
   line-height: 1;
 }
 
-.coming-header h1 {
+.coming-header h1,
+.coming-header__page {
   margin: 0;
   font: inherit;
   font-weight: 400;
 }
 
-.coming-header h1 span {
+.coming-header h1 span,
+.coming-header__page span {
   color: rgba(66, 105, 200, 0.88);
 }
 
@@ -176,7 +178,46 @@ a {
 
 .coming-page--game .coming-main {
   grid-template-columns: minmax(16rem, 0.72fr) minmax(24rem, 1.28fr);
-  gap: clamp(3rem, 7vw, 8rem);
+  min-height: auto;
+  align-content: start;
+  column-gap: clamp(3rem, 7vw, 8rem);
+  row-gap: clamp(3rem, 5vw, 5rem);
+  padding-top: clamp(1.25rem, 1.8vw, 1.75rem);
+}
+
+.coming-page--game .coming-header {
+  min-height: clamp(5.5rem, 6vw, 6rem);
+}
+
+.game-lead {
+  display: grid;
+  min-height: clamp(7.25rem, 8vw, 8rem);
+  grid-column: 1 / -1;
+  align-content: center;
+}
+
+.game-lead__number {
+  margin: 0 0 0.75rem;
+  color: var(--cobalt);
+  font-size: 0.54rem;
+  letter-spacing: 0.28em;
+}
+
+.game-lead h1 {
+  margin: 0;
+  color: rgba(237, 240, 234, 0.9);
+  font-size: clamp(0.92rem, 1.35vw, 1.3rem);
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  line-height: 1;
+}
+
+.game-lead__mode {
+  margin: 1.15rem 0 0;
+  color: rgba(131, 144, 168, 0.62);
+  font-size: 0.5rem;
+  letter-spacing: 0.22em;
+  line-height: 1.4;
 }
 
 .coming-page--game .coming-status {
@@ -463,7 +504,11 @@ a {
   .coming-page--game .coming-main {
     grid-template-columns: 1fr;
     gap: 3.25rem;
-    padding-top: clamp(3rem, 10vh, 5rem);
+    padding-top: 1rem;
+  }
+
+  .game-lead {
+    min-height: 8.25rem;
   }
 
   .game-preview {
