@@ -4,27 +4,117 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#060a14">
-  <meta name="description" content="SACHER10610 MOVIE — coming soon">
+  <meta name="description" content="SACHER10610 MOVIE — 映像作品のアーカイブ。">
   <title>MOVIE — SACHER10610</title>
   <link rel="stylesheet" href="/css/ambient-room.css?v=20260912-1">
-  <link rel="stylesheet" href="/css/coming-soon.css?v=20260911-2">
+  <link rel="stylesheet" href="/css/movie.css?v=20260918-3">
   <script src="/js/ambient-room.js?v=20260912-1" defer></script>
+  <script src="/js/movie.js?v=20260918-12" defer></script>
 </head>
-<body class="coming-page coming-page--movie">
-  <a class="skip-link" href="#status">公開状況へ移動</a>
-  <header class="coming-header">
-    <a class="coming-brand" href="/" aria-label="SACHER10610 トップページへ戻る">SACHER10610</a>
-    <div class="coming-header__meta">
-      <h1><span>02 /</span> MOVIE</h1>
-      <a class="coming-room-link" href="/" aria-label="マコトの部屋へ戻る">← ROOM</a>
+<body class="movie-page">
+  <a class="skip-link" href="#movie-player">映像プレイヤーへ移動</a>
+
+  <header class="movie-header">
+    <a class="movie-brand" href="/" aria-label="SACHER10610 トップページへ戻る">
+      <span>SACHER10610</span>
+    </a>
+    <div class="movie-header__meta">
+      <span aria-current="page"><span>02 /</span> MOVIE</span>
+      <a href="/" aria-label="マコトの部屋へ戻る">← ROOM</a>
     </div>
   </header>
-  <main class="coming-main" id="status">
-    <section class="coming-status" aria-label="公開準備状況">
-      <p class="coming-status__number" aria-hidden="true">02</p>
-      <p class="coming-status__title">COMING SOON</p>
-      <p class="coming-status__sub">IN PREPARATION</p>
-      <div class="coming-motif" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <main>
+    <section class="movie-lead" aria-labelledby="movie-title">
+      <p class="movie-lead__number" aria-hidden="true">02</p>
+      <h1 id="movie-title">MOVIE</h1>
+      <p class="movie-lead__mode">VISUAL ARCHIVE</p>
+    </section>
+
+    <section class="movie-stage" id="movie-player" aria-label="映像アーカイブとプレイヤー">
+      <div class="movie-tablet">
+        <span class="movie-tablet__camera" aria-hidden="true"></span>
+
+        <div class="movie-tablet__screen">
+          <header class="movie-status">
+            <span>SACHER VIDEO / 02</span>
+            <span id="movie-state" aria-live="polite">STANDBY</span>
+          </header>
+
+          <div class="movie-workspace">
+            <nav class="movie-library" aria-label="映像の分類">
+              <div class="movie-library__heading">
+                <span>LIBRARY</span>
+                <span id="movie-category-count">06 CATEGORIES</span>
+              </div>
+
+              <section class="movie-library__group movie-library__group--categories" aria-labelledby="category-heading">
+                <h2 id="category-heading">CATEGORY <span>分類</span></h2>
+                <div class="movie-library__list" id="category-list"></div>
+              </section>
+
+              <section class="movie-library__group movie-library__group--films" aria-labelledby="film-heading">
+                <h2 id="film-heading">FILMS</h2>
+                <div class="movie-library__list" id="film-list"></div>
+              </section>
+            </nav>
+
+            <div class="movie-viewer">
+              <div class="movie-viewer__meta" aria-hidden="true">
+                <span id="movie-path">喫茶ベストプレイス</span>
+                <span id="movie-index">00 / 00</span>
+              </div>
+
+              <div class="movie-viewport" id="movie-viewport">
+                <video id="movie-video" controls playsinline preload="metadata" aria-label="選択した映像" hidden></video>
+                <div class="movie-placeholder" id="movie-placeholder" role="status">
+                  <span class="movie-placeholder__corner" aria-hidden="true"></span>
+                  <span class="movie-placeholder__mark" aria-hidden="true"></span>
+                  <span id="movie-placeholder-message">NO MOVIE REGISTERED</span>
+                  <span class="movie-placeholder__sub">VIDEO ARCHIVE / 02</span>
+                </div>
+              </div>
+
+              <div class="movie-caption" id="movie-caption" hidden>
+                <span>NOW SHOWING</span>
+                <h2 id="movie-current-title">No Title</h2>
+              </div>
+
+              <div class="movie-timeline">
+                <input id="movie-progress" type="range" min="0" max="1000" value="0" aria-label="映像の再生位置" disabled>
+                <div class="movie-timeline__time" aria-hidden="true">
+                  <span id="movie-current-time">00:00</span>
+                  <span id="movie-duration">00:00</span>
+                </div>
+              </div>
+
+              <div class="movie-controls" aria-label="映像の再生操作">
+                <div class="movie-controls__transport">
+                  <button id="movie-previous" type="button" aria-label="前の映像" disabled>PREV</button>
+                  <button class="movie-controls__primary" id="movie-play" type="button" aria-label="再生" disabled>PLAY</button>
+                  <button id="movie-next" type="button" aria-label="次の映像" disabled>NEXT</button>
+                  <button id="movie-mode" type="button" aria-label="再生順を切り替える" aria-pressed="false" disabled>SEQUENTIAL</button>
+                </div>
+                <div class="movie-controls__auxiliary">
+                  <label for="movie-volume">LEVEL</label>
+                  <input id="movie-volume" type="range" min="0" max="100" value="72" aria-label="音量">
+                  <output id="movie-volume-value" for="movie-volume">72</output>
+                  <button id="movie-fullscreen" type="button" aria-label="映像を全画面表示" disabled>FULL</button>
+                </div>
+              </div>
+
+              <p class="movie-notice" id="movie-notice" aria-live="polite">ADD MOVIES TO START</p>
+            </div>
+          </div>
+
+          <footer class="movie-footer">
+            <span>VISUAL ARCHIVE</span>
+            <span>LOCAL MEDIA PLAYER</span>
+          </footer>
+        </div>
+      </div>
+
+      <p class="movie-stage__count">MEDIA LIBRARY — <span id="movie-count">000 FILMS</span></p>
     </section>
   </main>
 </body>
