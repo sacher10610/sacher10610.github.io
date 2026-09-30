@@ -9,6 +9,59 @@
         <meta name="description" content="『365日後、抹茶エクレアは世界一になる』5月編まで遊べるブラウザ体験版。" />
         <meta name="robots" content="index,follow" />
 
+        <style>
+            .game-start-gate {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483647;
+                display: grid;
+                place-items: center;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 20px 12px;
+                border: 0;
+                box-sizing: border-box;
+                color: rgba(255, 252, 239, 0.92);
+                background: rgba(8, 13, 10, 0.88);
+                font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+                font-size: clamp(13px, 1.25vw, 18px);
+                font-weight: 400;
+                letter-spacing: 0.05em;
+                text-align: center;
+                white-space: nowrap;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .game-start-gate::before {
+                content: "";
+                position: absolute;
+                width: min(22rem, 72vw);
+                height: 1px;
+                margin-top: 3.25rem;
+                background: linear-gradient(90deg, transparent, rgba(185, 156, 71, 0.7), transparent);
+            }
+
+            .game-start-gate:focus-visible {
+                outline: 1px solid rgba(255, 252, 239, 0.78);
+                outline-offset: -8px;
+            }
+
+            .game-start-gate.is-hidden {
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 180ms ease, visibility 180ms step-end;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .game-start-gate.is-hidden {
+                    transition: none;
+                }
+            }
+        </style>
+
         <link href="./tyrano/tyrano.css" rel="stylesheet" />
         <link href="./tyrano/libs/jquery-ui/jquery-ui.css" rel="stylesheet" />
 
@@ -94,6 +147,10 @@
     </head>
 
     <body onselectstart="return false" onContextmenu="return false" ontouchmove="event.preventDefault()">
+        <button id="game-start-gate" class="game-start-gate" type="button" aria-label="ゲームを開始する">
+            画面をクリックまたはタップしてください
+        </button>
+
         <div id="tyrano_base" class="tyrano_base" style="overflow: hidden" unselectable="on" ondragstart="return false"></div>
         <div id="vchat_base" class="vchat_base" style="overflow: hidden" unselectable="on" ondragstart="return false"></div>
 
@@ -121,6 +178,30 @@
             <button data-remodal-action="cancel" id="remodal-cancel" class="remodal-cancel">Cancel</button>
             <button data-remodal-action="confirm" id="remodal-confirm" class="remodal-confirm">OK</button>
         </div>
+
+        <script>
+            (function () {
+                var gate = document.getElementById("game-start-gate");
+                if (!gate) return;
+
+                gate.addEventListener(
+                    "click",
+                    function () {
+                        if (window.TYRANO && window.TYRANO.kag && typeof window.TYRANO.kag.readyAudio === "function") {
+                            window.TYRANO.kag.readyAudio();
+                        } else if (window.Howler && window.Howler.ctx && window.Howler.ctx.state === "suspended") {
+                            window.Howler.ctx.resume();
+                        }
+
+                        gate.classList.add("is-hidden");
+                        window.setTimeout(function () {
+                            gate.remove();
+                        }, 200);
+                    },
+                    { once: true }
+                );
+            })();
+        </script>
         
         
         
