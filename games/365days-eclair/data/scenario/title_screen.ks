@@ -63,9 +63,12 @@ Object.keys(titleCharas).forEach(function (name) {
 [s]
 
 *title_exit
-[freeimage layer="1"]
-[cm]
+[if exp="(typeof process != 'undefined' && process.versions && process.versions.nw) || (typeof navigator != 'undefined' && navigator.app && navigator.app.exitApp)"]
 [close]
+[else]
+[dialog type="alert" text="ブラウザ版では画面を自動で閉じられません。タブやブラウザを閉じて終了してください。"]
+[endif]
+[jump target="*title"]
 [s]
 
 *start
