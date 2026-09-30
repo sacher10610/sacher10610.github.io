@@ -1,0 +1,33 @@
+<div id="menu_load_wrapper">
+    <img class="img_bg_base save_load_bg" src="./tyrano/images/system/config_bg_save_load_blank.png" alt="" />
+    <h1 class="save_load_title">LOAD DATA</h1>
+
+    <div class="display_menu">
+        <div class="menu_item save_load_back_button">
+            <img class="menu_close" src="./tyrano/images/system/back_white.png" alt="BACK" />
+        </div>
+
+        <div class="area_save_list">
+            <ul class="save_list">
+                {{for array_save}}
+                <li class="save_display_area save_list_item" data-num="{{>num}}">
+                    <span class="save_list_item_thumb">
+                        {{if img_data != ""}}
+                        <img src="{{>img_data}}" alt="" />
+                        {{else}}
+                        <span class="save_slot_empty">NO DATA</span>
+                        {{/if}}
+                    </span>
+                    <span class="save_list_item_area">
+                        <span class="save_list_item_date">{{:save_date}}</span>
+                        <span class="save_list_item_text">{{:title}}</span>
+                    </span>
+                </li>
+                {{/for}}
+            </ul>
+        </div>
+
+        <img class="button_smart button_arrow_up" src="./tyrano/images/system/arrow_up.png" alt="上へ" />
+        <img class="button_smart button_arrow_down" src="./tyrano/images/system/arrow_down.png" alt="下へ" />
+    </div>
+</div>

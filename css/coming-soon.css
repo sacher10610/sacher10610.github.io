@@ -210,6 +210,32 @@ a {
   line-height: 1.75;
 }
 
+.game-project__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 2rem;
+}
+
+.game-project__actions .coming-launch {
+  margin-top: 0;
+}
+
+.coming-launch--play {
+  border-color: rgba(66, 105, 200, 0.64);
+  background: rgba(66, 105, 200, 0.06);
+}
+
+.coming-launch--play span {
+  color: rgba(94, 134, 230, 0.92);
+}
+
+.coming-launch--play:is(:hover, :focus-visible) {
+  border-color: rgba(94, 134, 230, 0.9);
+  background: rgba(66, 105, 200, 0.12);
+}
+
 .game-gallery {
   display: grid;
   width: min(100%, 58rem);
@@ -575,6 +601,11 @@ a {
   .game-project--eclair .coming-status__title {
     font-size: 0.82rem;
     line-height: 1.7;
+  }
+
+  .game-project__actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .game-gallery {

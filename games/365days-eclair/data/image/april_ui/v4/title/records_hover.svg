@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="84" viewBox="0 0 300 84">
+<defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#e8d59a"/><stop offset=".5" stop-color="#f7edce"/><stop offset="1" stop-color="#ddc478"/></linearGradient><linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#b8862f"/><stop offset="1" stop-color="#f0d26c"/></linearGradient></defs>
+<path d="M16 5H278Q293 5 295 20V64Q293 79 278 79H16Q4 79 5 64V20Q4 5 16 5Z" fill="#111b12" stroke="url(#gold)" stroke-width="4"/>
+<path d="M19 11H276Q287 11 289 22V61Q287 73 276 73H19Q11 73 11 61V22Q11 11 19 11Z" fill="url(#g)" stroke="#f2d47c" stroke-width="1.5"/>
+<path d="M27 19H273M27 65H273" stroke="#e5c46d" stroke-opacity=".6"/>
+<text x="150" y="56" text-anchor="middle" font-family="Yu Mincho, YuMincho, serif" font-size="32" font-weight="700" fill="#29432e" stroke="#fff4d6" stroke-width="1" paint-order="stroke">記録</text></svg>

@@ -1,0 +1,89 @@
+/* April artwork: dimensions include padding, and labels sit inside the frame. */
+.button_graphic[style*="april_ui/"] {
+ box-sizing: border-box; padding: 0; margin: 0;
+ display: flex; align-items: center; justify-content: center;
+ line-height: 1.4; text-align: center; text-shadow: none;
+ background-repeat: no-repeat; background-position: center;
+}
+.button_graphic.april_choice { padding: 16px 45px 16px 85px; }
+.button_graphic.april_learned { padding-left: 150px; padding-right: 75px; }
+.button_graphic.april_action { padding: 12px 28px 12px 55px; font-weight: 700 !important; }
+#tyrano_base:has(.april_choice) .message0_fore { visibility: hidden; }
+.message0_fore .message_outer, .message0_back .message_outer {
+ background-size: 100% 100%;
+}
+.chara_name_area { width: 360px !important; text-align: center !important; line-height: 1.2; }
+input[name="f.player_name"] {
+ box-sizing: border-box; border: 2px solid #a48137; border-radius: 8px;
+ background: #fff9e9; color: #3b2a1b; padding: 6px 12px;
+}
+
+/* Keep April button labels legible over the artwork. */
+.button_graphic.april_choice { font-weight: bold !important; }
+.message0_fore .message_inner p { font-weight: bold !important; line-height: 1.3 !important; }
+.chara_name_area { font-weight: bold !important; }
+
+/* April failure-record spread: selectable rows sit inside the illustrated list frames. */
+.glink_button.april_record_item {
+ box-sizing: border-box; display: flex; align-items: center; justify-content: flex-start;
+ padding: 0 18px; line-height: 1.15; text-align: left; text-shadow: none !important;
+ color: #3b2a1b !important; font-weight: 700;
+ background: rgba(255, 249, 229, .35) !important;
+ border: 1px solid rgba(148, 112, 43, .62); border-radius: 5px;
+}
+.glink_button.april_record_item:hover {
+ background: rgba(241, 226, 185, .82) !important;
+}
+.glink_button.april_record_item.april_record_selected {
+ color: #fff7df !important; background: rgba(43, 77, 43, .94) !important;
+ border: 2px solid #c99e45; box-shadow: 0 1px 4px rgba(43, 32, 14, .35);
+}
+.glink_button.april_record_item.april_record_selected:hover {
+ background: rgba(54, 91, 51, .98) !important;
+}
+
+/* Unified archive screen controls */
+.glink_button.archive_mode_tab,.glink_button.archive_month_tab,.glink_button.archive_list_item,.glink_button.archive_action {
+ box-sizing:border-box !important; display:flex !important; align-items:center !important; justify-content:center !important;
+ text-align:center !important; text-shadow:none !important; line-height:1.15 !important; font-weight:700 !important;
+ padding:0 10px !important; margin:0 !important; background-image:none !important; transition:background-color .12s,color .12s,border-color .12s,box-shadow .12s;
+}
+.glink_button.archive_mode_tab {
+ border:2px solid #b99143 !important; border-radius:18px 6px 18px 6px !important;
+ background:linear-gradient(180deg,#f9f0d8,#ead8aa) !important; color:#305332 !important;
+ box-shadow:0 2px 5px rgba(25,31,20,.45),inset 0 0 0 2px rgba(255,255,255,.55); letter-spacing:.06em;
+}
+.glink_button.archive_mode_tab:hover,.glink_button.archive_mode_tab.archive_selected {
+ background:linear-gradient(180deg,#395c3a,#203c29) !important; color:#fff5d9 !important;
+ border-color:#e0bd68 !important; box-shadow:0 2px 7px rgba(15,22,16,.5),inset 0 0 0 1px rgba(255,240,190,.65);
+}
+.glink_button.archive_month_tab {
+ border:1px solid #b29455 !important; border-radius:7px !important;
+ background:rgba(255,249,230,.94) !important; color:#3b2a1b !important;
+}
+.glink_button.archive_month_tab:hover,.glink_button.archive_month_tab.archive_selected {
+ background:#3a5b39 !important; color:#fff7df !important; border-color:#e1bd68 !important; box-shadow:inset 0 0 0 1px #f3d889;
+}
+.glink_button.archive_list_item {
+ justify-content:flex-start !important; text-align:left !important; border:1px solid rgba(157,126,67,.72) !important;
+ border-radius:7px !important; background:rgba(255,250,235,.94) !important; color:#3b2a1b !important; padding:0 14px !important;
+}
+.glink_button.archive_list_item:hover,.glink_button.archive_list_item.archive_selected {
+ background:#355738 !important; color:#fff7df !important; border:2px solid #cda954 !important; box-shadow:0 2px 5px rgba(44,35,17,.26);
+}
+.glink_button.archive_action {
+ border:2px solid #d1ad5e !important; border-radius:18px 6px 18px 6px !important;
+ background:linear-gradient(180deg,#426642,#25442e) !important; color:#fff7df !important; box-shadow:0 2px 5px rgba(30,35,24,.38);
+}
+.glink_button.archive_action:hover {background:linear-gradient(180deg,#577c50,#345839) !important;border-color:#f0d286 !important;}
+
+
+.glink_button.archive_cg_category {
+ box-sizing:border-box !important; display:flex !important; align-items:center !important; justify-content:center !important;
+ text-align:center !important; text-shadow:none !important; line-height:1.15 !important; font-weight:700 !important;
+ padding:0 10px !important; margin:0 !important; border:1px solid #b29455 !important; border-radius:7px !important;
+ background:rgba(255,249,230,.94) !important; color:#3b2a1b !important;
+}
+.glink_button.archive_cg_category:hover,.glink_button.archive_cg_category.archive_selected {
+ background:#3a5b39 !important; color:#fff7df !important; border-color:#e1bd68 !important; box-shadow:inset 0 0 0 1px #f3d889;
+}

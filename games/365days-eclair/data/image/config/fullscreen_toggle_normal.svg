@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="58" viewBox="0 0 400 58">
+  <defs>
+    <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff3b4"/><stop offset=".45" stop-color="#b88127"/><stop offset="1" stop-color="#f6d56e"/></linearGradient>
+    <linearGradient id="green" x2="0" y2="1"><stop stop-color="#385739"/><stop offset=".5" stop-color="#183522"/><stop offset="1" stop-color="#10251a"/></linearGradient>
+  </defs>
+  <rect x="3" y="3" width="394" height="52" rx="17" fill="#11180f" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="8" y="8" width="384" height="42" rx="13" fill="url(#green)" stroke="#e4c265" stroke-width="1.5"/>
+  <path d="M23 14H377M23 44H377" stroke="#d4b65d" stroke-opacity=".45"/>
+  <text x="200" y="37" text-anchor="middle" font-family="Georgia, Yu Mincho, serif" font-size="20" font-weight="700" letter-spacing="1.5" fill="#fff2c7" stroke="#142316" stroke-width=".6" paint-order="stroke">FULLSCREEN</text>
+</svg>
