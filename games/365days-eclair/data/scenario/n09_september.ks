@@ -337,6 +337,7 @@
 「久世玲」
 [p]
 [eval exp="sf.cg_september_event_01 = true"]
+[skipstop]
 [chara_hide name="久世玲"]
 [chara_hide name="抹茶エクレア"]
 [bg storage="cg/september/CG09_01_The_Professional_Next_Door.png" time="500"]
@@ -1064,6 +1065,7 @@ f.april_bad = {kind:"CORE", id:"009", title:"勝ったけど負けた", lesson:"
 「どこにあるんですか？」
 [p]
 [eval exp="sf.cg_september_event_02 = true"]
+[skipstop]
 [chara_hide name="抹茶エクレア"]
 [bg storage="cg/september/CG09_02_A_Way_Back_to_Komorebi.png" time="500"]
 #抹茶エクレア
@@ -1176,6 +1178,7 @@ f.april_bad = {kind:"CORE", id:"009", title:"勝ったけど負けた", lesson:"
 「あなたたち」
 [p]
 [eval exp="sf.cg_september_event_03 = true"]
+[skipstop]
 [chara_hide name="抹茶エクレア"]
 [chara_hide name="久世玲"]
 [bg storage="cg/september/CG09_03_What_Do_You_Want_to_Sell.png" time="500"]
