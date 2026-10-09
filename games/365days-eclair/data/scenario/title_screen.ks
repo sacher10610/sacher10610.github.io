@@ -29,6 +29,29 @@
 [tb_hide_message_window]
 [tb_keyconfig flag=0]
 [iscript]
+if (!window.__september_legacy_august_save_hook) {
+  window.__september_legacy_august_save_hook = true;
+  TG.on("load-start", function () {
+    var checks = 0;
+    var repairOldAugustMenu = function () {
+      checks++;
+      var kag = TYRANO.kag;
+      var index = kag.ftag.current_order_index;
+      var tag = kag.ftag.array_tag && kag.ftag.array_tag[index];
+      var oldClearMenu = kag.stat.current_scenario === "n08_august.ks" &&
+        kag.stat.f && kag.stat.f.current_clear_month === "08" &&
+        tag && tag.name === "glink" && tag.pm && tag.pm.text === "9月へ" &&
+        document.body.innerText.indexOf("8月 CLEAR『バズった次の日』") >= 0 &&
+        document.body.innerText.indexOf("9月へ") < 0;
+      if (oldClearMenu) {
+        kag.ftag.startTag("jump", { storage: "n08_august.ks", target: "*august_clear_menu" });
+      } else if (checks < 20) {
+        setTimeout(repairOldAugustMenu, 150);
+      }
+    };
+    setTimeout(repairOldAugustMenu, 150);
+  });
+}
 var titleCharas = TG.stat.charas || {};
 if (TG.chara && TG.chara.getCharaContainer) {
   TG.chara.getCharaContainer().stop(true, true).remove();

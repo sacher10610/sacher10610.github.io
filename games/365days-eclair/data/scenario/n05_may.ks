@@ -219,6 +219,7 @@ CORE BAD 003
 [jump target="*may_bad003"]
 
 *may_bad003
+[xchgbgm storage="02_Flour_on_the_Floor.mp3" time="900"]
 [clearstack stack="if"]
 [cm]
 [bg storage="apr_shop_morning.png"]
@@ -484,6 +485,7 @@ f.april_bad = {kind:"CORE", id:"003", title:"炎上は知名度に入ります�
 [endscript]
 [register_core_bad id="003"]
 [call storage="system_common.ks" target="*show_core_bad"]
+[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
 [jump target="*choice_05_01"]
 
 *may_bad004_entry
@@ -505,6 +507,7 @@ CORE BAD 004
 [jump target="*may_bad004"]
 
 *may_bad004
+[xchgbgm storage="02_Flour_on_the_Floor.mp3" time="900"]
 [clearstack stack="if"]
 [cm]
 [chara_hide name="三好文子"]
@@ -695,6 +698,7 @@ f.april_bad = {kind:"CORE", id:"004", title:"投稿する店", lesson:"発信す
 [endscript]
 [register_core_bad id="004"]
 [call storage="system_common.ks" target="*show_core_bad"]
+[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
 [jump target="*choice_05_01"]
 
 *may_normal_route
@@ -1439,8 +1443,9 @@ f.current_clear_month = "05";
 「世界一って、一回来てもろた人数やないんやな。[r]
 ……また来てくれる人、増やしてこ」
 [resetfont]
-[glink text="タイトルへ" color="green" font_color="0x3B2A1B" x="675" y="245" width="400" height="85" size="23" bold="true" storage="title_screen.ks" target="*title" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
-[glink text="記録" color="green" font_color="0x3B2A1B" x="675" y="350" width="400" height="85" size="23" bold="true" storage="system_common.ks" target="*records_from_clear" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
+[glink text="タイトルへ" color="green" font_color="0x3B2A1B" x="675" y="150" width="400" height="85" size="23" bold="true" storage="title_screen.ks" target="*title" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
+[glink text="記録" color="green" font_color="0x3B2A1B" x="675" y="245" width="400" height="85" size="23" bold="true" storage="system_common.ks" target="*records_from_clear" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
+[glink text="6月へ" color="green" font_color="0x3B2A1B" x="675" y="340" width="400" height="85" size="23" bold="true" storage="n06_june.ks" target="*eyecatch_05_06" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
 [s]
 
 ; 旧版の終了画面を保存したデータでも、同名のローカル移動先を解決する。

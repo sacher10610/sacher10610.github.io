@@ -6,7 +6,7 @@
 
 
 		
-			[position layer="message0" page="fore" margint="76" marginl="160" marginr="65" marginb="30" vertical="false" radius="0"]
+			[position layer="message0" page="fore" margint="76" marginl="160" marginr="93" marginb="30" vertical="false" radius="0"]
 		
 
 		[ptext name="chara_name_area" layer="message0" color=0xFFF5D9 size=26 x=115 y=459 bold="true" edge="" shadow=""]

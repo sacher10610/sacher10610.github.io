@@ -21,6 +21,7 @@ input[name="f.player_name"] {
 /* Keep April button labels legible over the artwork. */
 .button_graphic.april_choice { font-weight: bold !important; }
 .message0_fore .message_inner p { font-weight: bold !important; line-height: 1.3 !important; }
+.message0_fore .message_inner, .message0_back .message_inner { padding-right: 93px !important; }
 .chara_name_area { font-weight: bold !important; }
 
 /* April failure-record spread: selectable rows sit inside the illustrated list frames. */
