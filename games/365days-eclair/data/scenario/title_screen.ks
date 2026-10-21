@@ -137,12 +137,12 @@ Object.keys(titleCharas).forEach(function (name) {
 [s]
 
 *start
+[eval exp="f.march_retry_run = false"]
 [freeimage layer="1"]
 [cm]
 [hidemenubutton]
 [tb_keyconfig flag=1]
 [jump storage="system_common.ks" target="*new_game"]
-[s]
 
 *load
 [freeimage layer="1"]
@@ -156,4 +156,9 @@ Object.keys(titleCharas).forEach(function (name) {
 [if exp="sf.true_bad_seen !== true"]
 [jump target="*title"]
 [endif]
-[jump target="*start"]
+[eval exp="f.march_retry_run = true"]
+[freeimage layer="1"]
+[cm]
+[hidemenubutton]
+[tb_keyconfig flag=1]
+[jump storage="system_common.ks" target="*new_game"]

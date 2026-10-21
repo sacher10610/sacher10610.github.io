@@ -1703,7 +1703,7 @@ TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-
 #女神
 「帰還の道も、開く準備が整っています」
 [p]
-[if exp="sf.true_bad_seen === true"]
+[if exp="sf.true_bad_seen === true && f.march_retry_run === true"]
 [jump target="*scene_03_11b"]
 [else]
 [jump target="*scene_03_11a"]
@@ -1977,7 +1977,7 @@ window.MarchEnding.cleanup();
 [call storage="system/future_character_define.ks"]
 [call target="*march_character_define"]
 [clearstack stack="if"]
-[if exp="sf.true_bad_seen !== true"]
+[if exp="sf.true_bad_seen !== true || f.march_retry_run !== true"]
 [jump target="*scene_03_10"]
 [endif]
 [eval exp="f.chapter = '03'; f.scene = '03_final_choice'"]
@@ -2146,7 +2146,7 @@ TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-
 
 *true_end_entry
 [clearstack stack="if"]
-[if exp="sf.true_bad_seen !== true"]
+[if exp="sf.true_bad_seen !== true || f.march_retry_run !== true"]
 [jump target="*scene_03_10"]
 [endif]
 [eval exp="f.chapter = '03'; f.scene = '03_true'"]
@@ -2594,7 +2594,7 @@ END『あなたの答え』
 [endif]
 [glink text="タイトルへ" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="150" bold="true" storage="title_screen.ks" target="*title" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
 [glink text="記録" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="245" bold="true" storage="system_common.ks" target="*records_from_march_end" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
-[if exp="f.current_march_end != 'core_017' && sf.true_bad_seen === true"]
+[if exp="f.current_march_end != 'core_017' && sf.true_bad_seen === true && f.march_retry_run === true"]
 [glink text="最後の選択肢へ" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="340" bold="true" target="*final_choice" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
 [endif]
 [s]

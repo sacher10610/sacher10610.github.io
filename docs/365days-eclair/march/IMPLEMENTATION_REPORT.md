@@ -2,6 +2,8 @@
 
 実装日：2026-10-20。基準：`MARCH_CODEX_LUNA_FINAL_IMPLEMENTATION_PACK_v1.zip` の `docs/00_README_FIRST.md` → `01_LATEST_DECISIONS_OVERRIDE.md` →本文v4・演出・素材・試験仕様。資料全27章を確認。旧資料の「初回動画未納品」「TRUEスタッフロール」は採用せず、最新確定を優先しました。
 
+2026-10-21の追加仕様変更：現在のトゥルー系分岐は、初回ED到達記録に加え、専用ボタンで開始した周回のフラグが必要です。「はじめから」は通常周回。詳細・セーブ互換性は [RETRY_RUN_SPEC_CHANGE.md](RETRY_RUN_SPEC_CHANGE.md) を優先してください。
+
 TyranoBuilder作業版とブラウザ版へ実装。従来のユーザー指定に従い、ゲーム画面の操作・実機通しプレイ・試聴・ユーザーSAVE/LOADは実行していません。以下のPASSはソース／隔離したJavaScript検査であり、実機確認済みを意味しません。
 
 ## 実装した流れ

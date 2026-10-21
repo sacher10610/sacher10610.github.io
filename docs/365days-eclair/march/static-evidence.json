@@ -1,11 +1,11 @@
 {
   "date": "2026-10-20",
   "scenarios": 18,
-  "jsChecks": 829,
-  "references": 600,
+  "jsChecks": 831,
+  "references": 601,
   "earlierRecordStates": 176,
   "checks": [
-    "Static PASS: 18 scenarios, 829 JavaScript checks, 600 references.",
+    "Static PASS: 18 scenarios, 831 JavaScript checks, 601 references.",
     "Bundled TyranoScript parser PASS: all 18 scenarios, no syntax warnings or unmatched if/endif.",
     "557 March spoken lines retained by generator; 84 timed TRUE pages + final narration; 16 April INSIGHT lines, ten CG triggers, actual-ended movie, first/second ending gates, normal-END distinction PASS.",
     "March seven records/ten CG masked/unlocked, exact captions/record prose; 176 earlier-month record states unchanged; monthly/all resets PASS.",

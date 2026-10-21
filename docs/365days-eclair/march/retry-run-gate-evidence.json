@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-21",
+  "normalStart": true,
+  "dedicatedRetry": true,
+  "firstPassCannotRetry": true,
+  "recordsPreserved": true,
+  "saveStateRoundTrip": true,
+  "legacySaves": "ordinary unless march_retry_run is explicitly true",
+  "aprilMenus": true,
+  "gateCases": 60,
+  "existingLabelOffsetsUnchanged": true,
+  "runtime": "Source/VM only; no actual UI or user SAVE/LOAD"
+}

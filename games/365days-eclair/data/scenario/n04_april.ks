@@ -573,7 +573,7 @@ sf.cg_april_mini_01 = true;
 f.scene = "04_04";
 [endscript]
 
-[if exp="sf.true_bad_seen === true"]
+[if exp="sf.true_bad_seen === true && f.march_retry_run === true"]
 [glink target="*choice_04_a" text="「じゃあ、1000個作ろう」" color="green" x="320" y="90" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
 [glink target="*choice_04_b" text="「いや、10個だけにしよう」" color="green" x="320" y="185" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
 
@@ -1926,7 +1926,7 @@ f.scene = "clear";
 
 *april_march_insight
 [clearstack stack="if"]
-[if exp="sf.true_bad_seen !== true"]
+[if exp="sf.true_bad_seen !== true || f.march_retry_run !== true"]
 [jump target="*choice_04_production"]
 [endif]
 [cm]

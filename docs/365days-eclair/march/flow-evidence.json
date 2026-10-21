@@ -1,13 +1,15 @@
 {
   "firstEnding": true,
   "debugFirstEnding": true,
+  "normalStartAfterCompletion": true,
+  "legacySaveRemainsOrdinary": true,
   "miniAndReviews": true,
   "knownMini": true,
   "normalEnds": [
     1,
     2
   ],
-  "trueRoute": true,
+  "dedicatedRetryTrueRoute": true,
   "firstNameExpansion": true,
   "registration": true,
   "yearContinuity": true,

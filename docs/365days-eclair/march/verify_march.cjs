@@ -51,7 +51,7 @@ assert.ok(trueSection.includes('[march_true_wait at="260.000" minimum="6500"]'))
 assert.equal((trueSection.match(/MarchEnding.playerName\(f.player_name\)/g)||[]).length,2);
 assert.ok(trueSection.includes('CG15_07')&&trueSection.includes('CG15_08'));
 for(const t of ['staff','366日目のレシピ.mp3','march_first_ending.mp4'])assert.ok(!trueSection.includes(t));
-assert.ok(section(march,'scene_03_10').includes('sf.true_bad_seen === true'));
+assert.ok(section(march,'scene_03_10').includes('sf.true_bad_seen === true && f.march_retry_run === true'));
 assert.ok(!section(march,'scene_03_11a').includes('sf.true_bad_seen = true'));
 assert.ok(!section(march,'scene_03_12a').includes('sf.true_bad_seen = true'));
 const card=section(march,'march_ending_menu');assert.ok(card.indexOf('sf.true_bad_seen = true')>card.indexOf('真・BAD END 017『約束どおり』'));
@@ -98,7 +98,7 @@ vm.runInNewContext(resetScript('records_reset_month_apply'),{sf,f:{april_record_
 for(const k of flags)sf[k]=true;vm.runInNewContext(resetScript('records_reset_all_apply'),{sf});for(const k of flags)assert.equal(sf[k],false);assert.equal(sf.true_bad_seen,true);assert.deepEqual(sf.cg_view,{keep:true});
 log.push(`March seven records/ten CG masked/unlocked, exact captions/record prose; ${regressions} earlier-month record states unchanged; monthly/all resets PASS.`);
 // Runtime harness: actual installed custom-tag controller, fake media/DOM/clock only.
-function harness(initialFlag=true){
+function harness(initialFlag=true,retryRun=true){
  let clock=0,id=0;const timers=new Map(),jumps=[],events={},plays=[],saves=[],stageStyles=[];let pads=[];
  class Element{
   constructor(type){this.type=type;this.style={};this.children=[];this.listeners={};this.currentTime=0;this.volume=1;this.parent=null;this.paused=false;}
@@ -118,7 +118,7 @@ function harness(initialFlag=true){
   playing(){return this.running;} seek(){return this.position;} stop(){this.running=false;this.stopped=true;}unload(){this.unloaded=true;}
  }
  const document=new Element('document');document.body=new Element('body');document.createElement=t=>new Element(t);document.hidden=false;
- const kag={stat:{enable_keyconfig:true,ch_speed:'37',is_skip:true,is_auto:true,play_bgm:true,f:{scene:''}},config:{defaultBgmVolume:'42'},tmp:{map_bgm:{}},variable:{sf:{true_bad_seen:initialFlag,core_bad_017:true,true_end_seen:true,cg_march_event_07:true,normal_ch03_clear:true}},
+ const kag={stat:{enable_keyconfig:true,ch_speed:'37',is_skip:true,is_auto:true,play_bgm:true,f:{scene:'',march_retry_run:retryRun}},config:{defaultBgmVolume:'42'},tmp:{map_bgm:{}},variable:{sf:{true_bad_seen:initialFlag,core_bad_017:true,true_end_seen:true,cg_march_event_07:true,normal_ch03_clear:true}},
   saveSystemVariable(){saves.push(JSON.parse(JSON.stringify(this.variable.sf)));},setSkip(v){this.stat.is_skip=v;},setAuto(v){this.stat.is_auto=v;},readyAudio(){this.tmp.ready_audio=true;},
   stronglyStop(){this.strong=true;},weaklyStop(){this.weak=true;},cancelStrongStop(){this.strong=false;},cancelWeakStop(){this.weak=false;},
   layer:{getLayer:(layer,page)=>({css:v=>stageStyles.push({layer,page,...v})})},
@@ -136,6 +136,10 @@ function harness(initialFlag=true){
 }
 {
  const h=harness(false);h.tag('march_true_begin');assert.equal(h.plays.length,0);assert.equal(h.jumps[0].target,'*scene_03_11a');
+}
+for(const retryRun of [false,undefined,null,'true',1]){
+ const h=harness(true,retryRun);if(retryRun===undefined)delete h.kag.stat.f.march_retry_run;
+ h.tag('march_true_begin');assert.equal(h.plays.length,0);assert.equal(h.jumps[0].target,'*scene_03_11a');assert.equal(h.kag.variable.sf.true_bad_seen,true);
 }
 {
  const h=harness();const oldSkip=h.kag.setSkip,oldAuto=h.kag.setAuto;

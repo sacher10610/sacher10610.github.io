@@ -144,7 +144,7 @@
     ]);
   }
   function trueBegin() {
-    if (kag.variable.sf.true_bad_seen !== true) {
+    if (kag.variable.sf.true_bad_seen !== true || kag.stat.f.march_retry_run !== true) {
       cleanup(); kag.ftag.startTag("jump", {storage:"n03_march.ks",target:"*scene_03_11a"}); return;
     }
     // The FINAL button is a user gesture; initialize Tyrano's audio before locking input.
