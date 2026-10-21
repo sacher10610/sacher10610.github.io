@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="264" viewBox="0 0 940 264" role="img" aria-label="もう一度、あの日から" xml:lang="ja">
+ <defs>
+  <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff9e9"/><stop offset="1" stop-color="#eddfbc"/></linearGradient>
+  <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7d6a2"/><stop offset=".45" stop-color="#b99b55"/><stop offset="1" stop-color="#a58a4b"/></linearGradient>
+  <filter id="shadow" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#10180e" flood-opacity=".25"/></filter>
+ </defs>
+ <rect x="14" y="14" width="912" height="232" rx="23" fill="url(#panel)" stroke="url(#edge)" stroke-width="3" filter="url(#shadow)"/>
+ <rect x="23" y="23" width="894" height="214" rx="17" fill="none" stroke="#bda570" stroke-width="1" opacity=".6"/>
+ <!-- Restrained tea blossom: the same botanical motif as the record-book UI. -->
+ <g transform="translate(117 133)">
+  <path d="M-40 49Q-3 20 25-40M-11 13Q-54-7-43-48Q-5-44-11 13ZM6-13Q12-54 49-58Q47-20 6-13Z" fill="none" stroke="#456047" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M-36-35L-11 13M38-47L6-13" fill="none" stroke="#bda570" stroke-width="1.5"/>
+  <g transform="translate(-10 24)" fill="#fffcf4" stroke="#b99b55" stroke-width="1.2">
+   <ellipse cy="-17" rx="12" ry="20"/>
+   <ellipse cy="-17" rx="12" ry="20" transform="rotate(72)"/>
+   <ellipse cy="-17" rx="12" ry="20" transform="rotate(144)"/>
+   <ellipse cy="-17" rx="12" ry="20" transform="rotate(216)"/>
+   <ellipse cy="-17" rx="12" ry="20" transform="rotate(288)"/>
+   <circle r="6" fill="#b99b55" stroke="none"/>
+  </g>
+ </g>
+ <path d="M216 64V199" stroke="#bda570" stroke-width="1" opacity=".65"/>
+ <g fill="#263e2b" font-family="Yu Mincho,游明朝,MS Mincho,serif" text-anchor="middle" font-weight="500">
+  <text x="516" y="107" font-size="50" letter-spacing="3">もう一度、</text>
+  <text x="516" y="179" font-size="64" letter-spacing="4">あの日から</text>
+ </g>
+ <path d="M824 113L843 132L824 151" fill="none" stroke="#b99b55" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

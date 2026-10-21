@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-13",
+  "mode": "source checks and isolated JavaScript; no application operations",
+  "jsChecks": 488,
+  "references": 411,
+  "dialogues": 365,
+  "recordRegressionStates": 112,
+  "results": [
+    "Static PASS: 15 scenarios, 488 JavaScript checks, 411 file references.",
+    "Six original PNG hashes/dimensions PASS; corrected CG12_02 kept. Audio reused without duplicates.",
+    "365 dialogue pages (363 adopted + 2 user-requested), telephone departure/return and SE stop, shorter choice texts, pre-collapse blackout and CG fade-out PASS. Whisper scene, three BAD/retry paths, five CG skip stops, entrance/exit bells, month-end BGM and unchanged November narrative PASS.",
+    "Record VM checks PASS: four records/five CGs masked/unlocked, exact texts, 112 previous-month states unchanged, monthly/all reset.",
+    "Old August–November CLEAR menu callback PASS in isolated JS (repair absent next-month button, leave updated menu untouched). Actual SAVE/LOAD untested."
+  ],
+  "errors": []
+}

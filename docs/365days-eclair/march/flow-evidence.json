@@ -1,0 +1,15 @@
+{
+  "firstEnding": true,
+  "debugFirstEnding": true,
+  "miniAndReviews": true,
+  "knownMini": true,
+  "normalEnds": [
+    1,
+    2
+  ],
+  "trueRoute": true,
+  "firstNameExpansion": true,
+  "registration": true,
+  "yearContinuity": true,
+  "runtime": "NOT RUN"
+}

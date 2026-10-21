@@ -573,6 +573,17 @@ sf.cg_april_mini_01 = true;
 f.scene = "04_04";
 [endscript]
 
+[if exp="sf.true_bad_seen === true"]
+[glink target="*choice_04_a" text="「じゃあ、1000個作ろう」" color="green" x="320" y="90" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
+[glink target="*choice_04_b" text="「いや、10個だけにしよう」" color="green" x="320" y="185" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
+
+[if exp="sf.core_bad_001 == true || sf.core_bad_002 == true"]
+[glink target="*choice_04_c" text="「その前に、何個なら売れそうか調べよう」" color="green" x="320" y="280" width="640" height="85" size="18" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_learned_normal.png" enterimg="april_ui/v2/choices/choice_learned_hover.png" name="april_choice april_learned"]
+[endif]
+
+[glink target="*april_march_insight" text="「……君は、本当に帰りたいの？」" color="green" x="320" y="375" width="640" height="85" size="20" font_color="0x3B2A1B" bold="true" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
+[s]
+[else]
 [glink target="*choice_04_a" text="「じゃあ、1000個作ろう」" color="green" x="320" y="145" width="640" height="135" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
 [glink target="*choice_04_b" text="「いや、10個だけにしよう」" color="green" x="320" y="299" width="640" height="135" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
 
@@ -581,6 +592,7 @@ f.scene = "04_04";
 [endif]
 
 [s]
+[endif]
 
 *choice_04_a
 [clearstack stack="if"]
@@ -1911,3 +1923,59 @@ f.scene = "clear";
 ; 5月未実装時はタイトル/開発中画面へ戻す。
 [jump storage="system_common.ks" target="*april_clear"]
 
+
+*april_march_insight
+[clearstack stack="if"]
+[if exp="sf.true_bad_seen !== true"]
+[jump target="*choice_04_production"]
+[endif]
+[cm]
+#主人公
+「……君は、本当に帰りたいの？」
+[p]
+#抹茶エクレア
+「……え？」
+[p]
+#主人公
+「女神様の条件を達成したら、帰れるんだよね」
+[p]
+#抹茶エクレア
+「……そうやけど」
+[p]
+#主人公
+「帰れることと、帰りたいことは違うから」
+[p]
+#抹茶エクレア
+「……いきなり難しいこと聞くなあ」
+[p]
+#主人公
+「……ごめん」
+[p]
+#抹茶エクレア
+「今はまだ、ウチも分からへん」
+[p]
+#抹茶エクレア
+「世界一なりたいんは、本気やで」
+[p]
+#主人公
+「うん」
+[p]
+#抹茶エクレア
+「でも、これからどうなるかは、まだ分からへん」
+[p]
+#主人公
+「そうだよね」
+[p]
+#抹茶エクレア
+「ほな、まず一緒に作ってみよ」
+[p]
+#主人公
+「……うん」
+[p]
+#抹茶エクレア
+「その時になったら、また聞いてな」
+[p]
+#主人公
+「約束する」
+[p]
+[jump target="*choice_04_c"]

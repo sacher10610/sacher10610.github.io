@@ -1,0 +1,3674 @@
+--- a/index.html
++++ b/index.html
+@@ -6,7 +6,7 @@
+         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+         <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover" />
+         <meta name="theme-color" content="#132013" />
+-        <meta name="description" content="『365日後、抹茶エクレアは世界一になる』2月編まで遊べるブラウザ体験版。" />
++        <meta name="description" content="『365日後、抹茶エクレアは世界一になる』4月〜3月の全12章が遊べるブラウザ体験版。" />
+         <meta name="robots" content="index,follow" />
+         <link rel="icon" type="image/x-icon" href="./data/image/app_icon/game-icon.ico" />
+         <link rel="icon" type="image/png" sizes="192x192" href="./data/image/app_icon/icon-192.png" />
+--- a/data/others/march_ending.js
++++ b/data/others/march_ending.js
+@@ -0,0 +1,313 @@
++/* March endings. Only movie/TRUE playback owns these temporary listeners/locks.
++ * Release: set ENABLE_MARCH_ED_DEBUG_RESET to false; no save data migration.
++ */
++(function (root) {
++  "use strict";
++  if (root.MarchEnding) return;
++  var ENABLE_MARCH_ED_DEBUG_RESET = true;
++  var kag = root.TYRANO.kag;
++  var active = null;
++  var events = ["pointerdown", "pointerup", "touchstart", "touchend", "click", "dblclick", "keydown", "keyup", "keyhold", "contextmenu", "wheel"];
++  var now = function () { return Date.now(); };
++  function canLeave(state, time) {
++    return !!(state && state.cardVisible && state.musicEnded && !state.failed && !state.consumed && time - state.cardShownAt >= 1500);
++  }
++  function playerName(value) {
++    return Array.from(String(value || "").trim().replace(/[<>\[\]\r\n]/g, "")).slice(0, 12).join("") || "ユウ";
++  }
++  function stopEvent(e) { e.preventDefault(); e.stopImmediatePropagation(); }
++  function next() { kag.cancelStrongStop(); kag.cancelWeakStop(); kag.ftag.nextOrder(); }
++  function blankStage() {
++    // Remove the old CG before removing a full-screen media overlay (prevents a flash).
++    if (!kag.layer || !kag.layer.getLayer) return;
++    ["fore", "back"].forEach(function (page) {
++      kag.layer.getLayer("base",page).css({"background-image":"none","background-color":"#000","background-size":"","background-position":"","background-repeat":""});
++    });
++  }
++  function add(state, object, type, fn) {
++    object.addEventListener(type, fn, { capture: true, passive: false });
++    state.listeners.push(function () { object.removeEventListener(type, fn, true); });
++  }
++  function timer(state, fn, ms) {
++    var id = root.setTimeout(function () { if (active === state) fn(); }, ms);
++    state.timers.push(id);
++    return id;
++  }
++  function overlay(state, title, message, options) {
++    if (state.errorPanel) state.errorPanel.remove();
++    var panel = root.document.createElement("div");
++    panel.className = "march-media-recovery";
++    panel.style.cssText = "position:fixed;inset:0;z-index:2147483646;background:#10170feF;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#3b2a1b";
++    var box = root.document.createElement("div");
++    box.style.cssText = "background:#fff8e4;border:2px solid #a68b45;border-radius:14px;padding:24px;max-width:580px;margin:20px;line-height:1.7";
++    var heading = root.document.createElement("strong"); heading.textContent = title; box.appendChild(heading);
++    var text = root.document.createElement("p"); text.textContent = message; box.appendChild(text);
++    options.forEach(function (option) {
++      var button = root.document.createElement("button"); button.textContent = option.text;
++      button.style.cssText = "background:#305332;color:#fff8e4;border:1px solid #b99a48;border-radius:8px;padding:12px 18px;margin:8px;font-size:16px;cursor:pointer";
++      button.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); option.run(); });
++      box.appendChild(button);
++    });
++    panel.appendChild(box); root.document.body.appendChild(panel); state.errorPanel = panel;
++  }
++  function muteOwnedAudio(state) {
++    if (state.audio) { state.audio.stop(); }
++  }
++  function clearHeldInput() {
++    var input = kag.key_mouse;
++    if (!input) return;
++    var keys = input.keyboard && input.keyboard.key_state_map;
++    if (keys) Object.keys(keys).forEach(function (key) {
++      keys[key].pressed = false; keys[key].hold_frame = 0;
++      root.clearTimeout(keys[key].timer_id);
++    });
++    input.is_holding_skip = false; input.is_swipe = false;
++  }
++  function cleanup() {
++    var state = active;
++    if (!state) return;
++    active = null;
++    state.timers.forEach(root.clearTimeout);
++    state.listeners.forEach(function (remove) { remove(); });
++    if (state.fadingAudio) {
++      state.fadingAudio.off("fade",state.onFade);
++      state.fadingAudio.stop(); state.fadingAudio.unload();
++    }
++    if (state.audio) {
++      state.audioHandlers.forEach(function (pair) { state.audio.off(pair[0], pair[1]); });
++      state.audio.stop();
++      if (kag.tmp.map_bgm["0"] === state.audio) {
++        delete kag.tmp.map_bgm["0"];
++        kag.stat.current_bgm = ""; kag.stat.current_bgm_vol = "";
++        kag.tmp.is_bgm_play = false;
++      }
++      state.audio.unload();
++    }
++    if (!kag.tmp.map_bgm["0"]) {
++      kag.stat.current_bgm = ""; kag.stat.current_bgm_vol = "";
++      kag.tmp.is_bgm_play = false;
++    }
++    if (state.video) {
++      state.video.pause(); state.video.removeAttribute("src"); state.video.load(); state.video.remove();
++    }
++    if (state.card) state.card.remove();
++    if (state.errorPanel) state.errorPanel.remove();
++    kag.setSkip = state.oldSetSkip; kag.setAuto = state.oldSetAuto;
++    kag.stat.enable_keyconfig = state.oldKeyconfig;
++    kag.stat.ch_speed = state.oldSpeed;
++    kag.stat.is_skip = false; kag.stat.is_auto = false;
++    kag.stat.is_wait = false;
++    clearHeldInput();
++    kag.cancelStrongStop(); kag.cancelWeakStop();
++  }
++  function preventTrailingInput() {
++    var until = now() + 450;
++    var block = function (e) { if (now() < until) stopEvent(e); };
++    ["click", "dblclick", "touchend", "keyup"].forEach(function (type) { root.document.addEventListener(type, block, true); });
++    root.setTimeout(function () {
++      ["click", "dblclick", "touchend", "keyup"].forEach(function (type) { root.document.removeEventListener(type, block, true); });
++    }, 500);
++  }
++  function begin(kind) {
++    cleanup();
++    kag.setSkip(false); kag.setAuto(false);
++    clearHeldInput();
++    var state = {
++      kind: kind, listeners: [], timers: [], audioHandlers: [], musicEnded: false,
++      cardVisible: false, consumed: false, failed: false,
++      oldKeyconfig: kag.stat.enable_keyconfig, oldSpeed: kag.stat.ch_speed,
++      oldSetSkip: kag.setSkip, oldSetAuto: kag.setAuto
++    };
++    active = state;
++    kag.stat.enable_keyconfig = false; kag.stat.ch_speed = "10";
++    kag.setSkip = function (value) { if (!value) return state.oldSetSkip.call(kag, false); };
++    kag.setAuto = function (value) { if (!value) return state.oldSetAuto.call(kag, false); };
++    events.forEach(function (type) {
++      add(state, root.document, type, function (e) {
++        if (state.errorPanel && state.errorPanel.contains(e.target)) return;
++        var confirm = type === "click" || type === "touchend" ||
++          (type === "keydown" && !e.repeat && (e.key === "Enter" || e.key === " " || e.code === "NumpadEnter"));
++        stopEvent(e);
++        if (confirm && canLeave(state, now())) finishTrue(state);
++      });
++    });
++    return state;
++  }
++  function failTrue(state, reason) {
++    if (active !== state || state.failed) return;
++    state.failed = true; muteOwnedAudio(state);
++    kag.stronglyStop(); kag.weaklyStop();
++    root.console.error("[March TRUE audio]", reason);
++    overlay(state, "エンディング音声を再生できませんでした", "再生をやり直すか、最後の選択肢へ戻れます。", [
++      {text:"最初から再生し直す",run:function () { cleanup(); kag.ftag.startTag("jump", {storage:"n03_march.ks",target:"*true_end_retry"}); }},
++      {text:"最後の選択肢へ戻る",run:function () { cleanup(); kag.ftag.startTag("jump", {storage:"n03_march.ks",target:"*final_choice"}); }}
++    ]);
++  }
++  function trueBegin() {
++    if (kag.variable.sf.true_bad_seen !== true) {
++      cleanup(); kag.ftag.startTag("jump", {storage:"n03_march.ks",target:"*scene_03_11a"}); return;
++    }
++    // The FINAL button is a user gesture; initialize Tyrano's audio before locking input.
++    if (kag.readyAudio) kag.readyAudio();
++    var state = begin("true");
++    kag.stronglyStop(); kag.weaklyStop();
++    var oldAudio = kag.tmp.map_bgm["0"];
++    function startAudio() {
++      if (active !== state || state.audioBegun) return;
++      state.audioBegun = true;
++      if (state.fadingAudio) {
++        state.fadingAudio.off("fade",state.onFade);
++        state.fadingAudio.stop(); state.fadingAudio.unload(); state.fadingAudio = null;
++      }
++      var enabled = kag.stat.play_bgm;
++      // Even with BGM disabled we need a silent transport and its real end event.
++      if (enabled === false) kag.stat.play_bgm = true;
++      kag.ftag.startTag("playbgm", {storage:"16_Recipe_for_Day_366.mp3",loop:"false",stop:"true",can_ignore:"false",buf:"0",volume:enabled === false ? "0" : ""});
++      kag.stat.play_bgm = enabled;
++      state.audio = kag.tmp.map_bgm["0"];
++      if (!state.audio) { failTrue(state, "audio object unavailable"); return; }
++      function listen(type, fn) { state.audio.on(type, fn); state.audioHandlers.push([type,fn]); }
++      listen("end", function () { if (active === state) state.musicEnded = true; });
++      listen("loaderror", function (id, error) { failTrue(state, error); });
++      listen("playerror", function (id, error) { failTrue(state, error); });
++      var started = false;
++      function start() {
++        if (active !== state || started || state.failed) return;
++        started = true; state.lastProgressAt = now(); state.lastSeek = 0; next();
++        watchProgress(state);
++      }
++      listen("play", start);
++      if (state.audio.playing()) start();
++      timer(state, function () { if (!started) failTrue(state,"audio start timed out"); },20000);
++    }
++    // A short fade completes before the TRUE transport starts: never two music tracks.
++    if (oldAudio && oldAudio.playing() && oldAudio.volume() > 0) {
++      state.fadingAudio = oldAudio; state.onFade = startAudio;
++      oldAudio.once("fade",startAudio);
++      kag.ftag.startTag("stopbgm",{stop:"true",fadeout:"true",time:"180"});
++      timer(state,startAudio,220);
++    } else {
++      kag.ftag.startTag("stopbgm",{stop:"true"}); startAudio();
++    }
++  }
++  function watchProgress(state) {
++    if (state.failed || state.musicEnded || active !== state) return;
++    var pos = Number(state.audio.seek()) || 0;
++    if (pos > state.lastSeek) { state.lastProgressAt = now(); state.lastSeek = pos; }
++    if (!root.document.hidden && now() - state.lastProgressAt > 25000) { failTrue(state,"audio playback stalled"); return; }
++    if (root.document.hidden) state.lastProgressAt = now();
++    timer(state,function () { watchProgress(state); },500);
++  }
++  function trueWait(pm) {
++    var state = active;
++    if (!state || state.kind !== "true") {
++      cleanup(); kag.ftag.startTag("jump",{storage:"n03_march.ks",target:"*final_choice"}); return;
++    }
++    kag.stronglyStop(); kag.weaklyStop();
++    var earliest = now() + Number(pm.minimum || 1000);
++    function poll() {
++      if (state.failed) return;
++      var position = Number(state.audio.seek()) || 0;
++      if (now() >= earliest && (state.musicEnded || position >= Number(pm.at))) next();
++      else timer(state,poll,80);
++    }
++    poll();
++  }
++  function trueCard() {
++    var state = active;
++    if (!state || state.kind !== "true") { kag.ftag.startTag("jump",{storage:"n03_march.ks",target:"*final_choice"}); return; }
++    kag.stronglyStop(); kag.weaklyStop();
++    var card = root.document.createElement("div");
++    card.style.cssText = "position:fixed;inset:0;z-index:199999;background:#000;opacity:0;transition:opacity 900ms;display:flex;align-items:center;justify-content:center";
++    var img = root.document.createElement("img");
++    img.alt = ""; img.draggable = false;
++    img.style.cssText = "width:100%;height:100%;object-fit:contain;pointer-events:none";
++    state.card = card; card.appendChild(img); root.document.body.appendChild(card);
++    img.onload = function () {
++      if (active !== state) return;
++      if (card.getBoundingClientRect) card.getBoundingClientRect();
++      card.style.opacity = "1";
++      // Wait until the fade has completed before measuring the card's minimum hold.
++      timer(state,function () { state.cardVisible = true; state.cardShownAt = now(); },900);
++    };
++    img.onerror = function () { failTrue(state,"fin image unavailable"); };
++    img.src = "./data/image/ending/ENDCARD_TRUE_01_FIN.png";
++    // A held controller button must be released before it can confirm the card.
++    var previous = true;
++    function controller() {
++      var pads = root.navigator.getGamepads ? root.navigator.getGamepads() : [];
++      var pressed = Array.prototype.some.call(pads,function (pad) { return pad && pad.buttons[0] && pad.buttons[0].pressed; });
++      if (pressed && !previous && canLeave(state,now())) { finishTrue(state); return; }
++      previous = pressed; timer(state,controller,100);
++    }
++    controller();
++  }
++  function finishTrue(state) {
++    if (active !== state || !canLeave(state,now())) return;
++    state.consumed = true;
++    kag.variable.sf.true_end_seen = true; kag.saveSystemVariable();
++    blankStage(); cleanup(); preventTrailingInput(); next();
++  }
++  function movie(pm) {
++    var state = begin("movie");
++    kag.stronglyStop(); kag.weaklyStop();
++    kag.ftag.startTag("stopbgm",{stop:"true"});
++    var video = root.document.createElement("video"); state.video = video;
++    video.style.cssText = "position:fixed;inset:0;width:100%;height:100%;background:#000;object-fit:contain;z-index:199999";
++    video.playsInline = true; video.setAttribute("playsinline", ""); video.preload = "auto";
++    video.controls = false; video.loop = false;
++    video.volume = kag.stat.play_bgm === false ? 0 : Math.max(0,Math.min(1,Number(kag.config.defaultBgmVolume || 0)/100));
++    var done = false;
++    function complete() { if (active !== state || done) return; done = true; blankStage(); cleanup(); preventTrailingInput(); next(); }
++    function error(reason) {
++      if (active !== state || state.failed || done) return;
++      state.failed = true; video.pause(); root.console.error("[March first movie]", reason);
++      overlay(state,"エンディング動画を再生できませんでした", "動画の読み込みを再試行できます。再生が難しい場合も、このあとの物語へ進めます。",[
++        {text:"再生をやり直す",run:function () { cleanup(); movie(pm); }},
++        {text:"後日談へ進む",run:complete}
++      ]);
++    }
++    add(state,video,"ended",complete);
++    add(state,video,"error",function () { error(video.error ? video.error.code : "video error"); });
++    var lastTime = 0, lastProgressAt = now();
++    function watch() {
++      if (state.failed || done) return;
++      if (video.currentTime > lastTime) { lastTime = video.currentTime; lastProgressAt = now(); }
++      if (root.document.hidden) lastProgressAt = now();
++      if (!root.document.hidden && now() - lastProgressAt > 25000) { error("video playback stalled"); return; }
++      timer(state,watch,500);
++    }
++    video.src = "./data/video/"+pm.storage; root.document.body.appendChild(video);
++    var play = video.play();
++    if (play && play.catch) play.catch(error);
++    watch();
++  }
++  function installTag(name,defaults,start) { kag.ftag.master_tag[name] = {kag:kag,pm:defaults,start:start}; }
++  installTag("march_true_begin",{},trueBegin);
++  installTag("march_true_wait",{at:"0",minimum:"1000"},trueWait);
++  installTag("march_true_card",{},trueCard);
++  installTag("march_movie",{storage:"march_first_ending.mp4"},movie);
++  if (kag.on) {
++    kag.on("load-start.march-ending",cleanup,{system:true});
++    kag.on("load-complete.march-ending",function () {
++      // load-complete is emitted inside make.ks's return, before the saved file is restored.
++      if (kag.stat.f.scene !== "03_true") return;
++      var attempts = 0;
++      function recover() {
++        if (kag.stat.f.scene !== "03_true") return;
++        if (kag.stat.current_scenario === "n03_march.ks") {
++          cleanup(); kag.ftag.startTag("jump",{storage:"n03_march.ks",target:"*final_choice"});
++        } else if (++attempts < 40) root.setTimeout(recover,50);
++      }
++      root.setTimeout(recover,0);
++    },{system:true});
++  }
++  root.MarchEnding = {
++    ENABLE_MARCH_ED_DEBUG_RESET: ENABLE_MARCH_ED_DEBUG_RESET,
++    cleanup: cleanup, canLeave: canLeave, playerName: playerName,
++    resetFirstEndingFlag: function () {
++      if (!root.MarchEnding.ENABLE_MARCH_ED_DEBUG_RESET) return false;
++      kag.variable.sf.true_bad_seen = false; kag.saveSystemVariable(); return true;
++    }
++  };
++})(window);
+--- a/data/scenario/n02_february.ks
++++ b/data/scenario/n02_february.ks
+@@ -1918,4 +1918,5 @@
+ [resetfont]
+ [glink text="タイトルへ" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="150" bold="true" storage="title_screen.ks" target="*title" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
+ [glink text="記録" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="245" bold="true" storage="system_common.ks" target="*records_from_clear" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
++[glink text="3月へ" color="green" font_color="0x3B2A1B" x="675" y="340" width="400" height="85" size="23" bold="true" storage="n03_march.ks" target="*eyecatch_02_03" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
+ [s]
+--- a/data/scenario/n03_march.ks
++++ b/data/scenario/n03_march.ks
+@@ -0,0 +1,2606 @@
++; MARCH / 第12章 世界一の抹茶エクレア / approved v4 + latest override
++*eyecatch_02_03
++[skipstop]
++[clearstack stack="if"]
++[cm]
++[clearfix]
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
++[call storage="system_common.ks"]
++[call storage="system/future_character_define.ks"]
++[call target="*march_character_define"]
++[stopbgm fadeout="true" time="900"]
++[mask time="700" color="0x000000"]
++[stopse]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="eyecatch/EYECATCH_02_03_MARCH.png" time="1"]
++[tb_hide_message_window]
++[mask_off time="400"]
++[playse storage="SE_EYECATCH_05_06_Jingle.wav" volume="75" loop="false"]
++[wait time="3100"]
++[mask time="400" color="0x000000"]
++[stopse]
++[jump target="*scene_03_01"]
++
++*scene_03_01
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
++[call storage="system_common.ks"]
++[call storage="system/future_character_define.ks"]
++[call target="*march_character_define"]
++[clearstack stack="if"]
++[cm]
++[clearfix]
++[hidemenubutton]
++[chara_config pos_mode="false"]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_morning.png" time="1"]
++[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[tb_show_message_window]
++[deffont color="0x3B2A1B" bold="true" size="28"]
++[resetfont]
++[restore_april_quick_menu]
++[eval exp="f.chapter = '03'; f.scene = '03_01'"]
++[mask_off time="500"]
++#主人公
++「三月になったね」
++[p]
++#抹茶エクレア
++「三月や！」
++[p]
++#主人公
++「いよいよだね」
++[p]
++#抹茶エクレア
++「いよいよやな」
++[p]
++#主人公
++「一年前、ここで会った時は」
++[p]
++#抹茶エクレア
++「降り立った時やな」
++[p]
++#主人公
++「厨房に落ちてきた時だね」
++[p]
++#抹茶エクレア
++「そこ、最終章まで揉めるん？」
++[p]
++#主人公
++「大事なところだから」
++[p]
++#抹茶エクレア
++「大事なん、そこちゃうやろ！」
++[p]
++#主人公
++「藤代さんから、正式な出場確認が来たよ」
++[p]
++#抹茶エクレア
++「ほんまに出られるんやな」
++[p]
++#主人公
++「出場の手続きも通った。あとは大会の規定に沿って持っていくだけ」
++[p]
++#抹茶エクレア
++「世界のパティシエが集まるんやろ？」
++[p]
++#主人公
++「うん。久世さんもいる」
++[p]
++#抹茶エクレア
++「……強そうやなあ」
++[p]
++#主人公
++「九月と同じこと言ってる」
++[p]
++#抹茶エクレア
++「今回は、ちゃんと勝負するんやで」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「でも、前とはちゃう」
++[p]
++#主人公
++「どう違う？」
++[p]
++#抹茶エクレア
++「久世さんに勝つために、何でもするんやない」
++[p]
++#抹茶エクレア
++「ウチらの抹茶エクレアで、ちゃんと挑む」
++[p]
++#主人公
++「……そうだね」
++[p]
++#主人公
++「四月に、千個作ろうとしたね」
++[p]
++#抹茶エクレア
++「いきなりその話！？」
++[p]
++#主人公
++「五月は、お客さんに来てもらおうとして」
++[p]
++#抹茶エクレア
++「六月、七月で味も変わった」
++[p]
++#主人公
++「八月にバズって、九月に催事へ出て」
++[p]
++#抹茶エクレア
++「十月は、知らん人にも味を伝えた」
++[p]
++#主人公
++「十一月に女神様が来て、十二月は無理しないことを覚えて」
++[p]
++#抹茶エクレア
++「一月は、点数の横のひとこと」
++[p]
++#主人公
++「二月は……」
++[p]
++#抹茶エクレア
++「今、一緒にすることを選んだ」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「全部、この一個につながってんねんな」
++[p]
++#主人公
++「そう思う」
++[p]
++#抹茶エクレア
++「ほな、世界一取りにいこか」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「……その前に」
++[p]
++#主人公
++「何？」
++[p]
++#抹茶エクレア
++「今日の分、作らな」
++[p]
++#主人公
++「そこも覚えたんだ」
++[p]
++#抹茶エクレア
++「当たり前や。Komorebiやもん」
++[p]
++
++*scene_03_02
++[eval exp="f.chapter = '03'; f.scene = '03_02'"]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="450"]
++#主人公
++「準備のチェックをしよう」
++[p]
++#抹茶エクレア
++「試作用の記録、製造手順、材料表」
++[p]
++#主人公
++「保存条件、出品規定、搬入時間」
++[p]
++#抹茶エクレア
++「全部大丈夫？」
++[p]
++#主人公
++「今のところは」
++[p]
++#抹茶エクレア
++「……世界一になったら、どうなるんやろ」
++[p]
++#主人公
++「まだなってないから」
++[p]
++#抹茶エクレア
++「せやな！」
++[p]
++#主人公
++「何を先にする？」
++[p]
++
++*choice_03_00
++[eval exp="f.chapter = '03'; f.scene = '03_choice_00'"]
++[clearstack stack="if"]
++[cm]
++[glink text="優勝スピーチを最初から最後まで練習しよう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="150" bold="true" target="*mini_m12_entry" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="優勝記念の帯紙を、先に印刷しよう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="245" bold="true" target="*mini_m13_entry" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="大会用の段取りと、店の仕込みを確認しよう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="340" bold="true" target="*correct_03_00" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[s]
++
++*mini_m12_entry
++[if exp="sf.mini_bad_m12 === true"]
++[cm]
++#
++その結末は、もう知っている。
++[r]
++MINI BAD M12『優勝スピーチ三時間』
++[p]
++[jump target="*choice_03_00"]
++[endif]
++[cm]
++#主人公
++「もし優勝したら、挨拶が必要かもしれない」
++[p]
++#抹茶エクレア
++「……演説？」
++[p]
++#主人公
++「少し練習しておこう」
++[p]
++#抹茶エクレア
++「任しとき！」
++[p]
++#抹茶エクレア
++「えー、まず、この場を借りて、女神様へ感謝を」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「次に、四月の千個事件について」
++[p]
++#主人公
++「そこ、世界へ発信する？」
++[p]
++#抹茶エクレア
++「反省は大事や」
++[p]
++[mask time="400" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="400"]
++#抹茶エクレア
++「続きまして、七月のエクレアとは何か問題」
++[p]
++#主人公
++「……まだ続くの？」
++[p]
++#抹茶エクレア
++「九月の久世さんとの出会いは三十分でいける」
++[p]
++#主人公
++「長いなあ」
++[p]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[image layer="1" name="march_sdcg_image" folder="bgimage" storage="cg/march/SD15_01_MiniBad012_Three_Hour_Speech.png" x="320" y="100" width="640" visible="true"]
++[image layer="1" name="march_sdcg_frame" folder="image" storage="april_ui/v4/sdcg_window_frame.png" x="310" y="90" width="660" height="380" visible="true"]
++[eval exp="sf.cg_march_mini_01 = true"]
++#主人公
++「……三時間」
++[p]
++#抹茶エクレア
++「まだ十二月までしか行ってへん」
++[p]
++#主人公
++「最初の一個も、まだ作ってないよ」
++[p]
++#抹茶エクレア
++「……あっ」
++[p]
++#主人公
++「優勝してから考えよう」
++[p]
++#抹茶エクレア
++「せやな。スピーチで世界一なってもしゃあない！」
++[p]
++[free layer="1" name="march_sdcg_image"]
++[free layer="1" name="march_sdcg_frame"]
++[chara_mod name="抹茶エクレア" face="quiet"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[iscript]
++f.april_bad = {"kind": "MINI", "id": "m12", "title": "優勝スピーチ三時間", "lesson": "「思い出、いっぱいやな……でも大会前に話しきるもんちゃうわ！」", "retry": "*choice_03_00", "storage": "n03_march.ks", "month": "03"};
++[endscript]
++[register_mini_bad id="m12"]
++[call storage="system_common.ks" target="*show_mini_bad"]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="450"]
++[jump target="*choice_03_00"]
++
++*mini_m13_entry
++[if exp="sf.mini_bad_m13 === true"]
++[cm]
++#
++その結末は、もう知っている。
++[r]
++MINI BAD M13『世界一、先に印刷』
++[p]
++[jump target="*choice_03_00"]
++[endif]
++[cm]
++#主人公
++「優勝した後の包装も考えておこうか」
++[p]
++#抹茶エクレア
++「ええな。世界一記念の帯紙！」
++[p]
++#主人公
++「印刷の準備なら、先にできるかな」
++[p]
++#抹茶エクレア
++「でっかく『WORLD No.1』や！」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「……」
++[p]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[image layer="1" name="march_sdcg_image" folder="bgimage" storage="cg/march/SD15_02_MiniBad013_Print_First.png" x="320" y="100" width="640" visible="true"]
++[image layer="1" name="march_sdcg_frame" folder="image" storage="april_ui/v4/sdcg_window_frame.png" x="310" y="90" width="660" height="380" visible="true"]
++[eval exp="sf.cg_march_mini_02 = true"]
++#主人公
++「すごい量になったね」
++[p]
++#抹茶エクレア
++「しかも、まだ優勝してへん」
++[p]
++#主人公
++「そうなんだよね」
++[p]
++#抹茶エクレア
++「これ、今は店で使えへんやん」
++[p]
++#主人公
++「未確定の称号を付けるわけにはいかないから」
++[p]
++#抹茶エクレア
++「……先に作るんは、帯紙やなかったな」
++[p]
++#主人公
++「うん。中身だね」
++[p]
++#抹茶エクレア
++「ほな、そっちから！」
++[p]
++[free layer="1" name="march_sdcg_image"]
++[free layer="1" name="march_sdcg_frame"]
++[chara_mod name="抹茶エクレア" face="quiet"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[iscript]
++f.april_bad = {"kind": "MINI", "id": "m13", "title": "世界一、先に印刷", "lesson": "「世界一って、印刷したらなれるもんちゃうな……」", "retry": "*choice_03_00", "storage": "n03_march.ks", "month": "03"};
++[endscript]
++[register_mini_bad id="m13"]
++[call storage="system_common.ks" target="*show_mini_bad"]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="450"]
++[jump target="*choice_03_00"]
++
++*correct_03_00
++[cm]
++[eval exp="f.chapter = '03'; f.scene = '03_choice00_correct'"]
++#主人公
++「まず、段取りを全部確認しよう」
++[p]
++#抹茶エクレア
++「それで、今日の店の分も作る」
++[p]
++#主人公
++「うん。大会があっても店は店だから」
++[p]
++#抹茶エクレア
++「今度こそ覚えてるで」
++[p]
++#主人公
++「今度こそ？」
++[p]
++#抹茶エクレア
++「そこは聞かんで！」
++[p]
++
++*scene_03_03
++[eval exp="f.chapter = '03'; f.scene = '03_03'"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="650"]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++[chara_mod name="三好文子" face="default"]
++[chara_show name="三好文子" left="80" top="90" time="300"]
++#三好文子
++「こんにちは」
++[p]
++#主人公
++「いらっしゃいませ」
++[p]
++#抹茶エクレア
++「三好さん！」
++[p]
++#三好文子
++「いよいよなのね」
++[p]
++#主人公
++「はい」
++[p]
++#三好文子
++「大きな大会で、いつものを出すんですって？」
++[p]
++#抹茶エクレア
++「そうやで」
++[p]
++#三好文子
++「それがいいわね」
++[p]
++#主人公
++「不安はありますけど」
++[p]
++#三好文子
++「……あなたのご両親も、きっと喜ぶと思うわ」
++[p]
++#主人公
++「……ありがとうございます」
++[p]
++#三好文子
++「でも、今日は応援を伝えに来ただけじゃないの」
++[p]
++#抹茶エクレア
++「？」
++[p]
++#三好文子
++「いつものを、二つお願い」
++[p]
++#主人公
++「はい」
++[p]
++#抹茶エクレア
++「いつものお客さんやな」
++[p]
++#三好文子
++「もちろん。大会の前も後も、ね」
++[p]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++[chara_hide name="三好文子" time="350"]
++[mask time="350" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_shop_day.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="350"]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++[chara_mod name="神田姫花" face="default"]
++[chara_show name="神田姫花" left="80" top="90" time="300"]
++#神田姫花
++「こんにちは！」
++[p]
++#抹茶エクレア
++「神田ちゃん！」
++[p]
++#神田姫花
++「大会、がんばってくださいね」
++[p]
++#主人公
++「ありがとう」
++[p]
++#神田姫花
++「配信があったら見ます。学校が終わってからですけど」
++[p]
++#抹茶エクレア
++「見てや！」
++[p]
++[font size="24"]
++#抹茶エクレア
++「暗黒皇帝陛下も応援してくれはる？」
++[p]
++[resetfont]
++[font size="24"]
++#神田姫花
++「やめてくださいっ！ もう！」
++[p]
++[resetfont]
++[font size="24"]
++#抹茶エクレア
++「ごめんごめん。内緒やったな」
++[p]
++[resetfont]
++[font size="24"]
++#神田姫花
++「……ちゃんと、応援してますからね」
++[p]
++[resetfont]
++#抹茶エクレア
++「知ってるで」
++[p]
++#主人公
++「何の話？」
++[p]
++#抹茶エクレア
++「応援の話や」
++[p]
++#神田姫花
++「そ、そうです！」
++[p]
++#主人公
++「ありがとう。がんばってくるよ」
++[p]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++[chara_hide name="神田姫花" time="350"]
++#抹茶エクレア
++「なあ」
++[p]
++#主人公
++「何？」
++[p]
++#抹茶エクレア
++「三好さんも神田ちゃんも、いつものを買うてくれた」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「世界に持っていくんも、いつもの一個でええな」
++[p]
++#主人公
++「そうだね」
++[p]
++
++*scene_03_04
++[eval exp="f.chapter = '03'; f.scene = '03_04'"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_01_At_the_Worlds_Door.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="650"]
++#抹茶エクレア
++「……うわ」
++[p]
++#主人公
++「どうした？」
++[p]
++#抹茶エクレア
++「ほんまに世界や」
++[p]
++#主人公
++「いろんな国の出場者がいるね」
++[p]
++#抹茶エクレア
++「誰も知らん店や」
++[p]
++#主人公
++「向こうも、うちを知らないだろうね」
++[p]
++#抹茶エクレア
++「……せやな」
++[p]
++#主人公
++「緊張した？」
++[p]
++#抹茶エクレア
++「ちょっとな」
++[p]
++#主人公
++「ここまで来たら、やるだけだよ」
++[p]
++#抹茶エクレア
++「うん」
++[p]
++[chara_mod name="藤代誠" face="default"]
++[chara_show name="藤代誠" left="80" top="90" time="300"]
++#藤代誠
++「こんにちは。受付は済みましたか？」
++[p]
++#主人公
++「藤代さん」
++[p]
++#藤代誠
++「必要な書類の確認だけ、最後にお手伝いします」
++[p]
++#抹茶エクレア
++「藤代さん、めっちゃ仕事の人や！」
++[p]
++#藤代誠
++「いつもは普通のお客さんですから」
++[p]
++#主人公
++「今でも、推薦してもらったのが不思議です」
++[p]
++#藤代誠
++「私は、きっかけをお伝えしただけです」
++[p]
++#藤代誠
++「評価は、ここにいる皆さんが下します」
++[p]
++#抹茶エクレア
++「分かってる」
++[p]
++#藤代誠
++「だからこそ、私は楽しみなんです」
++[p]
++#主人公
++「何がですか？」
++[p]
++#藤代誠
++「皆さんに、いつもの一個を食べてもらえることが」
++[p]
++#藤代誠
++「では、私はここまで」
++[p]
++#抹茶エクレア
++「藤代さん！」
++[p]
++#藤代誠
++「はい」
++[p]
++#抹茶エクレア
++「帰ったら、いつもの一個、買いに来てな！」
++[p]
++#藤代誠
++「……もちろん」
++[p]
++[chara_hide name="藤代誠" time="400"]
++#抹茶エクレア
++「さ、準備や！」
++[p]
++#主人公
++「うん」
++[p]
++
++*scene_03_05
++[eval exp="f.chapter = '03'; f.scene = '03_05'"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_02_Before_the_Finals.png" time="1"]
++[xchgbgm storage="09_Measured_Grace.mp3" time="900"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_mod name="久世玲" face="normal"]
++[chara_show name="久世玲" storage="kuze_rei_normal.png" left="80" top="90" time="300"]
++[mask_off time="650"]
++#久世玲
++「……見つけた」
++[p]
++#主人公
++「久世さん？」
++[p]
++#抹茶エクレア
++「久世さん！」
++[p]
++#久世玲
++「久しぶりね」
++[p]
++#抹茶エクレア
++「九月ぶりや！」
++[p]
++#久世玲
++「催事で隣だったわね」
++[p]
++#主人公
++「お久しぶりです」
++[p]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_01_Across_the_Same_Stage.png" time="650"]
++[eval exp="sf.cg_march_event_01 = true"]
++#久世玲
++「ここへ来ると思ってたわ」
++[p]
++#抹茶エクレア
++「ほんまに？」
++[p]
++#久世玲
++「毎日の店を続けてるなら、ね」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#久世玲
++「出品は？」
++[p]
++#主人公
++「うちで普段売っている抹茶エクレアです」
++[p]
++#久世玲
++「そう」
++[p]
++#抹茶エクレア
++「久世さんは？」
++[p]
++#久世玲
++「私も、自分の店のエクレア」
++[p]
++#主人公
++「……」
++[p]
++#久世玲
++「九月、あなたたちに聞いたでしょう」
++[p]
++#久世玲
++「何を売りたいの、って」
++[p]
++#抹茶エクレア
++「覚えてる」
++[p]
++#久世玲
++「答えは出た？」
++[p]
++#抹茶エクレア
++「うん」
++[p]
++#抹茶エクレア
++「ウチら、抹茶エクレアを売ってる」
++[p]
++#抹茶エクレア
++「でも、それだけやない」
++[p]
++#久世玲
++「……聞かせて」
++[p]
++#抹茶エクレア
++「毎日、また来てもらえる店の味や」
++[p]
++#久世玲
++「……」
++[p]
++#久世玲
++「それは、いい答えね」
++[p]
++#抹茶エクレア
++「久世さんは？」
++[p]
++#久世玲
++「食べた人が、別の日にも思い出すような一個」
++[p]
++#抹茶エクレア
++「……似てるな」
++[p]
++#久世玲
++「案外ね」
++[p]
++#主人公
++「でも、勝負は勝負なんですね」
++[p]
++#久世玲
++「もちろん」
++[p]
++#抹茶エクレア
++「ウチら、勝ちに来たで」
++[p]
++#久世玲
++「知ってる」
++[p]
++#久世玲
++「九月は、あなたたちが勝ちたがっていた」
++[p]
++#久世玲
++「今は、どう？」
++[p]
++#抹茶エクレア
++「ちゃんと一個、作るんが先」
++[p]
++#久世玲
++「……ええ」
++[p]
++#久世玲
++「じゃあ、明日」
++[p]
++#久世玲
++「同じ舞台で」
++[p]
++#抹茶エクレア
++「望むところや！」
++[p]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_02_Before_the_Finals.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="450"]
++[stopbgm fadeout="true" time="900"]
++#主人公
++「……強かったね」
++[p]
++#抹茶エクレア
++「まだ何もしてへんやん」
++[p]
++#主人公
++「空気が」
++[p]
++#抹茶エクレア
++「明日、あの人の本気が見られるんやな」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「負けられへんなあ」
++[p]
++#主人公
++「でも」
++[p]
++#抹茶エクレア
++「分かってる。ウチらのやり方で」
++[p]
++
++*scene_03_06
++[eval exp="f.chapter = '03'; f.scene = '03_06'"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_02_Before_the_Finals.png" time="1"]
++[xchgbgm storage="05_Morning_Mise_en_Place.mp3" time="900"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="650"]
++#主人公
++「温度も量も規定内。試食用の数も確保した」
++[p]
++#抹茶エクレア
++「香り、ええ感じやな」
++[p]
++#主人公
++「練習より落ち着いてるね」
++[p]
++#抹茶エクレア
++「そっちは？」
++[p]
++#主人公
++「……手が少し震える」
++[p]
++#抹茶エクレア
++「ウチもや」
++[p]
++#主人公
++「そう見えない」
++[p]
++#抹茶エクレア
++「見せへんのや」
++[p]
++#抹茶エクレア
++「なあ。ほんまに変えんでええ？」
++[p]
++#主人公
++「何を？」
++[p]
++#抹茶エクレア
++「今から少し甘くするとか、豪華にするとか」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「世界の人に合わせた方が、ええんかな」
++[p]
++#主人公
++「九月は、勝つために自分たちの目的を見失った」
++[p]
++#抹茶エクレア
++「うん」
++[p]
++#主人公
++「十月は、遠くへ届けるために説明を工夫した」
++[p]
++#抹茶エクレア
++「うん」
++[p]
++#主人公
++「一月は、数字の外の声を聞いた」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「最後は、どれを持っていこうか」
++[p]
++
++*choice_03_01
++[eval exp="f.chapter = '03'; f.scene = '03_choice_01'"]
++[clearstack stack="if"]
++[cm]
++[glink text="久世さんに勝てそうな派手なものを作ろう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="150" bold="true" target="*review_03_a" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="審査の数字だけが高くなるよう調整しよう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="245" bold="true" target="*review_03_b" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="いつもの一個を、一番いい状態で届けよう" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="340" bold="true" target="*correct_03_01" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[s]
++
++*review_03_a
++[cm]
++#主人公
++「久世さんより目立つものに作り替えたら……」
++[p]
++#抹茶エクレア
++「……九月も、似たこと言うたな」
++[p]
++#主人公
++「結局、勝つことだけが目的になった」
++[p]
++#抹茶エクレア
++「ここまで来て、同じ間違いはせえへん」
++[p]
++#主人公
++「うん。考え直そう」
++[p]
++[jump target="*choice_03_01"]
++
++*review_03_b
++[cm]
++#主人公
++「審査の数字を最大化する方向で、ここから全部調整しようか」
++[p]
++#抹茶エクレア
++「数字は大事やけど」
++[p]
++#抹茶エクレア
++「百点って、誰の百点なん？」
++[p]
++#主人公
++「……そうだったね」
++[p]
++#抹茶エクレア
++「目の前の人が食べる一個、忘れたらあかん」
++[p]
++#主人公
++「うん。考え直そう」
++[p]
++[jump target="*choice_03_01"]
++
++*correct_03_01
++[eval exp="f.chapter = '03'; f.scene = '03_choice01_correct'"]
++[cm]
++#主人公
++「いつもの一個を、一番いい状態で届けよう」
++[p]
++#抹茶エクレア
++「……うん！」
++[p]
++#主人公
++「味も形も、今日だけ別物にはしない」
++[p]
++#抹茶エクレア
++「作り慣れた、ウチらのエクレアや」
++[p]
++#主人公
++「ただし、温度と時間は細かく確認しよう」
++[p]
++#抹茶エクレア
++「一月の数字、ここで役立つな」
++[p]
++#主人公
++「食べる人に説明もする」
++[p]
++#抹茶エクレア
++「十月のカードも役立つ」
++[p]
++#主人公
++「終わったら、店に戻ってまた作る」
++[p]
++#抹茶エクレア
++「十二月の約束や」
++[p]
++#主人公
++「できること、全部やったね」
++[p]
++#抹茶エクレア
++「……まだや」
++[p]
++#主人公
++「？」
++[p]
++#抹茶エクレア
++「最後の一個、今から作るんやろ」
++[p]
++#主人公
++「そうだね」
++[p]
++
++*scene_03_07
++[eval exp="f.chapter = '03'; f.scene = '03_07'"]
++[stopbgm fadeout="true" time="700"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_03_World_Eclair_Grand_Prix.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_mod name="久世玲" face="normal"]
++[chara_show name="久世玲" storage="kuze_rei_normal.png" left="80" top="90" time="300"]
++[mask_off time="650"]
++#久世玲
++「……準備、できた？」
++[p]
++#主人公
++「はい」
++[p]
++#抹茶エクレア
++「いつでも！」
++[p]
++#久世玲
++「九月の催事、私たち隣同士だったわね」
++[p]
++#抹茶エクレア
++「せやな」
++[p]
++#久世玲
++「今日は、同じ決勝の舞台」
++[p]
++#主人公
++「……はい」
++[p]
++#久世玲
++「手加減はしない」
++[p]
++#抹茶エクレア
++「こっちもや」
++[p]
++#久世玲
++「……ふふ」
++[p]
++#久世玲
++「じゃあ、本気で勝ちにいくわ」
++[p]
++[xchgbgm storage="15_The_Real_Patissier.mp3" time="500"]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_02_The_Real_Patissier.png" time="650"]
++[eval exp="sf.cg_march_event_02 = true"]
++[wait time="800"]
++#抹茶エクレア
++「……すごいな」
++[p]
++#主人公
++「久世さん、迷いがない」
++[p]
++#抹茶エクレア
++「でも、ウチらも迷ってへんで」
++[p]
++#主人公
++「うん」
++[p]
++#久世玲
++「……あなたたちの抹茶、いい香りね」
++[p]
++#抹茶エクレア
++「久世さんの生地も、すごい」
++[p]
++#久世玲
++「ありがとう」
++[p]
++#抹茶エクレア
++「でも、今日は譲らへん！」
++[p]
++#久世玲
++「もちろん。私もよ」
++[p]
++#司会
++「それでは、ファイナル審査を始めます」
++[p]
++#主人公
++「行こう」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++#抹茶エクレア
++「ウチらの一年、食べてもらお！」
++[p]
++
++*scene_03_08
++[eval exp="f.chapter = '03'; f.scene = '03_08'"]
++[mask time="500" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_03_World_Eclair_Grand_Prix.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="500"]
++#司会
++「最終評価は、専門審査と一般試食評価を合わせた総合審査となります」
++[p]
++#審査員
++「こちらの品について、説明をお願いします」
++[p]
++#主人公
++「Pâtisserie Komorebiの抹茶エクレアです」
++[p]
++#抹茶エクレア
++「毎日、店で作ってる一個やで」
++[p]
++#主人公
++「軽いシュー生地に、抹茶の香りが立つクリーム。甘さの後に、ほろ苦さが残ります」
++[p]
++#審査員
++「その味を選んだ理由は？」
++[p]
++#主人公
++「何度も試して、お客さんの声を聞いた結果です」
++[p]
++#抹茶エクレア
++「派手にした方がええ時もある。でも」
++[p]
++#抹茶エクレア
++「明日もまた食べたい、って思える一個にしたかってん」
++[p]
++#審査員
++「……香りが先に来ますね」
++[p]
++#審査員
++「後味がきれいです」
++[p]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_03_One_Bite_One_World.png" time="650"]
++[eval exp="sf.cg_march_event_03 = true"]
++#審査員
++「この軽さなら、もう一つ食べたくなります」
++[p]
++#抹茶エクレア
++「……！」
++[p]
++#主人公
++「ありがとうございます」
++[p]
++#試食客A
++「初めて食べる味です」
++[p]
++#試食客B
++「もう一口、と思いました」
++[p]
++#試食客C
++「これ、お店でも買えるんですか？」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「どうした？」
++[p]
++#抹茶エクレア
++「九月みたいや」
++[p]
++#主人公
++「催事？」
++[p]
++#抹茶エクレア
++「『店、どこにあるん？』って聞かれた日」
++[p]
++#主人公
++「そうだね」
++[p]
++#抹茶エクレア
++「ここでも、つながったな」
++[p]
++#主人公
++「うん」
++[p]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_03_World_Eclair_Grand_Prix.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_mod name="久世玲" face="normal"]
++[chara_show name="久世玲" storage="kuze_rei_normal.png" left="80" top="90" time="300"]
++[mask_off time="450"]
++#久世玲
++「……」
++[p]
++#抹茶エクレア
++「久世さん？」
++[p]
++#久世玲
++「どんな結果でも、今日の一個は自信があるわ」
++[p]
++#抹茶エクレア
++「ウチも」
++[p]
++#久世玲
++「……それでいいのよ」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「でも」
++[p]
++#久世玲
++「？」
++[p]
++#抹茶エクレア
++「やっぱり世界一、取りたい！」
++[p]
++#久世玲
++「ふふ。私もよ」
++[p]
++
++*scene_03_09
++[eval exp="f.chapter = '03'; f.scene = '03_09'"]
++[stopbgm fadeout="true" time="1000"]
++[mask time="700" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_03_World_Eclair_Grand_Prix.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="700"]
++#司会
++「審査結果を発表します」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#司会
++「World Éclair Grand Prix、総合第1位は……」
++[p]
++[wait time="700"]
++#司会
++「Pâtisserie Komorebi。Matcha Éclair!」
++[p]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_04_The_Worlds_Best_Eclair.png" time="650"]
++[eval exp="sf.cg_march_event_04 = true"]
++[xchgbgm storage="06_One_Year_One_Eclair.mp3" time="900"]
++[eval exp="sf.normal_ch03_clear = true"]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「……抹茶ちゃん？」
++[p]
++#抹茶エクレア
++「……うそ」
++[p]
++#主人公
++「本当だよ」
++[p]
++#抹茶エクレア
++「……ウチら？」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「世界一？」
++[p]
++#主人公
++「……世界一だ」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「……泣いてる？」
++[p]
++#抹茶エクレア
++「泣いてへん！」
++[p]
++#主人公
++「声、震えてる」
++[p]
++#抹茶エクレア
++「……うるさい！」
++[p]
++#抹茶エクレア
++「四月のあの日から」
++[p]
++#抹茶エクレア
++「ほんまに一年かけて」
++[p]
++#抹茶エクレア
++「ウチら、世界一なったんやな」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「ひとりやったら、ここまで来られへんかった」
++[p]
++#主人公
++「自分もだよ」
++[p]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="BG15_03_World_Eclair_Grand_Prix.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_mod name="久世玲" face="normal"]
++[chara_show name="久世玲" storage="kuze_rei_normal.png" left="80" top="90" time="300"]
++[mask_off time="450"]
++#久世玲
++「……おめでとう」
++[p]
++#抹茶エクレア
++「久世さん」
++[p]
++#久世玲
++「いいエクレアだったわ」
++[p]
++#主人公
++「久世さんのも、すごかったです」
++[p]
++#久世玲
++「ええ。私も、あれが自分の答え」
++[p]
++#久世玲
++「今日は、あなたたちの一個が一番だった」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#久世玲
++「でも、次もそうとは限らないわよ」
++[p]
++#抹茶エクレア
++「……！」
++[p]
++#抹茶エクレア
++「望むところや！」
++[p]
++#久世玲
++「……ふふ」
++[p]
++[chara_hide name="久世玲" time="350"]
++[chara_mod name="藤代誠" face="default"]
++[chara_show name="藤代誠" left="80" top="90" time="300"]
++#藤代誠
++「……おめでとうございます」
++[p]
++#主人公
++「藤代さん！」
++[p]
++#藤代誠
++「私は、きっかけをお渡ししただけです」
++[p]
++#抹茶エクレア
++「いつもの一個、今度は二個買うてな！」
++[p]
++#藤代誠
++「……考えておきます」
++[p]
++#抹茶エクレア
++「そこは即答して！」
++[p]
++[chara_hide name="藤代誠" time="350"]
++#司会
++「受賞者から、ひとことお願いします」
++[p]
++#抹茶エクレア
++「……！」
++[p]
++#主人公
++「三時間はだめだよ」
++[p]
++#抹茶エクレア
++「分かってるって！」
++[p]
++#抹茶エクレア
++「ウチらのエクレアは、失敗だらけでした」
++[p]
++#抹茶エクレア
++「でも、そのたびに話して、食べてもらって、また作りました」
++[p]
++#抹茶エクレア
++「今日、ここで食べてくれた人も」
++[p]
++#抹茶エクレア
++「また店に来てくれる人も」
++[p]
++#抹茶エクレア
++「みんな、ほんまにありがとう！」
++[p]
++
++*scene_03_10
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
++[call storage="system_common.ks"]
++[call storage="system/future_character_define.ks"]
++[call target="*march_character_define"]
++[eval exp="f.chapter = '03'; f.scene = '03_10'"]
++[if exp="TYRANO.kag.stat.current_bgm !== '06_One_Year_One_Eclair.mp3'"]
++[xchgbgm storage="06_One_Year_One_Eclair.mp3" time="900"]
++[endif]
++[mask time="800" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_night.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="800"]
++[autosave title="3月 世界一達成後・約束の厨房"]
++#主人公
++「帰ってきたね」
++[p]
++#抹茶エクレア
++「帰ってきたな」
++[p]
++#主人公
++「……世界一になったのに、厨房は変わらないね」
++[p]
++#抹茶エクレア
++「ちゃんとあるで。いつもの台も、ボウルも」
++[p]
++#主人公
++「四月、ここから始まったんだ」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「今日、世界一になった」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++#主人公
++「明日から、どうなるんだろう」
++[p]
++#抹茶エクレア
++「……なあ」
++[p]
++#主人公
++「何？」
++[p]
++#抹茶エクレア
++「覚えてる？」
++[p]
++#主人公
++「……三月終わってから話す、って約束」
++[p]
++#抹茶エクレア
++「うん」
++[p]
++#主人公
++「覚えてるよ」
++[p]
++[wait time="400"]
++[playse storage="se_matcha_teleport_land.wav" volume="55" loop="false"]
++[chara_show name="女神" left="80" top="90" time="800"]
++#女神
++「おめでとうございます」
++[p]
++#主人公
++「……女神様」
++[p]
++#抹茶エクレア
++「ほんまに来た！」
++[p]
++#女神
++「今度は、お祝いを言いに参りました」
++[p]
++#女神
++「客観的にも、世界一と認められる結果ですね」
++[p]
++#主人公
++「条件、達成ですか」
++[p]
++#女神
++「はい。お約束どおりです」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#女神
++「帰還の道も、開く準備が整っています」
++[p]
++[if exp="sf.true_bad_seen === true"]
++[jump target="*scene_03_11b"]
++[else]
++[jump target="*scene_03_11a"]
++[endif]
++
++*scene_03_11a
++[eval exp="f.chapter = '03'; f.scene = '03_11a'"]
++[clearstack stack="if"]
++[cm]
++#主人公
++「よかったね、抹茶ちゃん」
++[p]
++#抹茶エクレア
++「……え？」
++[p]
++#主人公
++「これで、元の世界へ帰れる」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++#主人公
++「一年で、約束を果たしたんだ」
++[p]
++#抹茶エクレア
++「……せやな」
++[p]
++#女神
++「帰還は、今からでも可能です」
++[p]
++#主人公
++「……長かったね」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「ここで会って、ここでお別れなんだね」
++[p]
++#抹茶エクレア
++「……あんた」
++[p]
++#主人公
++「何？」
++[p]
++#抹茶エクレア
++「……ありがとな」
++[p]
++#主人公
++「……こちらこそ」
++[p]
++#抹茶エクレア
++「ウチ、あんたと店やれて、よかった」
++[p]
++#主人公
++「自分も、抹茶ちゃんと作れてよかった」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「忘れないよ」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++[wait time="450"]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_05_One_Last_Look.png" time="650"]
++[eval exp="sf.cg_march_event_05 = true"]
++#抹茶エクレア
++「ほな……」
++[p]
++#主人公
++「……うん」
++[p]
++#抹茶エクレア
++「元気でな」
++[p]
++#主人公
++「抹茶ちゃんも」
++[p]
++[mask time="800" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_night.png" time="1"]
++[mask_off time="800"]
++[stopbgm fadeout="true" time="1000"]
++[wait time="1100"]
++[cm]
++[clearfix]
++[tb_hide_message_window]
++[stopse]
++[march_movie storage="march_first_ending.mp4"]
++[jump target="*scene_03_12a"]
++
++*scene_03_12a
++[eval exp="f.chapter = '03'; f.scene = '03_12a'"]
++[stopbgm]
++[stopse]
++[mask time="800" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_morning.png" time="1"]
++[mask_off time="800"]
++[tb_show_message_window]
++[deffont color="0x3B2A1B" bold="true" size="28"]
++[resetfont]
++[restore_april_quick_menu]
++#主人公
++「……今日の予約は」
++[p]
++#主人公
++「……増えたな」
++[p]
++#客
++「これ、世界一になったエクレアですよね？」
++[p]
++#主人公
++「はい」
++[p]
++#客
++「一つ、お願いします」
++[p]
++#主人公
++「ありがとうございます」
++[p]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++#主人公
++「……」
++[p]
++[wait time="650"]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_06_The_Promise_Left_Unspoken.png" time="650"]
++[eval exp="sf.cg_march_event_06 = true"]
++#主人公
++「……四月」
++[p]
++#抹茶エクレア
++「ウチら、三月終わったら……」
++[p]
++#主人公
++「その時、ちゃんと話そう」
++[p]
++#主人公
++「三月終わってから話す」
++[p]
++#抹茶エクレア
++「約束やで」
++[p]
++#主人公
++「……」
++[p]
++#主人公
++「……話してない」
++[p]
++#主人公
++「帰れることは、聞いた」
++[p]
++#主人公
++「帰らなきゃいけないわけじゃないことも、聞いた」
++[p]
++#主人公
++「……でも」
++[p]
++#主人公
++「抹茶ちゃんが、どうしたいかは」
++[p]
++#主人公
++「……一度も」
++[p]
++[wait time="500"]
++#女神
++「……本当に、それでよかったのですか？」
++[p]
++#主人公
++「……」
++[p]
++#主人公
++「世界一には、なれたのに」
++[p]
++[wait time="900"]
++[eval exp="f.current_march_end = 'core_017'"]
++[jump target="*march_ending_menu"]
++
++*scene_03_11b
++[eval exp="f.chapter = '03'; f.scene = '03_11b'"]
++[clearstack stack="if"]
++[cm]
++#女神
++「帰還の道も、開く準備が整っています」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「なあ、あんた」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「三月終わったら、話す約束やったな」
++[p]
++#主人公
++「……そうだね」
++[p]
++#主人公
++「今度こそ、話そう」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++#主人公
++「帰ることはできる。帰らないこともできる」
++[p]
++#主人公
++「でも、あの子にとっての答えを」
++[p]
++#主人公
++「自分が決めていいのだろうか」
++[p]
++[preload storage="./data/bgimage/cg/march/CG15_07_By_Your_Name.png" wait="false"]
++[preload storage="./data/bgimage/cg/march/CG15_08_The_Day_After.png" wait="false"]
++[preload storage="./data/image/ending/ENDCARD_TRUE_01_FIN.png" wait="false"]
++[preload storage="./data/bgm/16_Recipe_for_Day_366.mp3" wait="false"]
++[jump target="*final_choice"]
++
++*final_choice
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
++[iscript]
++window.MarchEnding.cleanup();
++[endscript]
++[call storage="system_common.ks"]
++[call storage="system/future_character_define.ks"]
++[call target="*march_character_define"]
++[clearstack stack="if"]
++[if exp="sf.true_bad_seen !== true"]
++[jump target="*scene_03_10"]
++[endif]
++[eval exp="f.chapter = '03'; f.scene = '03_final_choice'"]
++[if exp="TYRANO.kag.stat.current_bgm !== '06_One_Year_One_Eclair.mp3'"]
++[xchgbgm storage="06_One_Year_One_Eclair.mp3" time="900"]
++[endif]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_night.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_show name="女神" left="80" top="90" time="1"]
++[mask_off time="450"]
++[tb_show_message_window]
++[deffont color="0x3B2A1B" bold="true" size="28"]
++[resetfont]
++[clearfix]
++[restore_april_quick_menu]
++[autosave title="3月 最後の問い"]
++[cm]
++[glink text="帰った方がいいと思う" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="150" bold="true" target="*normal_end_01" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="ここに残ってほしい" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="245" bold="true" target="*normal_end_02" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink text="抹茶ちゃんが決めればいい" color="green" font_color="0x3B2A1B" x="310" width="660" height="85" size="21" y="340" bold="true" target="*true_end_entry" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[s]
++
++*normal_end_01
++[eval exp="f.chapter = '03'; f.scene = '03_end01'"]
++[cm]
++#主人公
++「……帰った方がいいと思う」
++[p]
++#抹茶エクレア
++「……」
++[p]
++#主人公
++「元の世界に、大切なものがあるかもしれないから」
++[p]
++#抹茶エクレア
++「……そうか」
++[p]
++#主人公
++「だから、帰るべきだと思う」
++[p]
++#抹茶エクレア
++「……あんたは、そう思うんやな」
++[p]
++#主人公
++「……うん」
++[p]
++#抹茶エクレア
++「心配してくれて、ありがとう」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「ほな、行くわ」
++[p]
++[chara_hide name="抹茶エクレア" time="700"]
++#女神
++「……お二人の答えが、同じだったかは」
++[p]
++#女神
++「確かめなくても、よろしかったのですか？」
++[p]
++[chara_hide name="女神" time="650"]
++#主人公
++「……」
++[p]
++[eval exp="sf.march_end_01_seen = true; f.current_march_end = 'march_end_01'"]
++[jump target="*march_ending_menu"]
++
++*normal_end_02
++[eval exp="f.chapter = '03'; f.scene = '03_end02'"]
++[cm]
++#主人公
++「……ここに残ってほしい」
++[p]
++#抹茶エクレア
++「……！」
++[p]
++#主人公
++「この店に、ずっといてくれたら嬉しい」
++[p]
++#抹茶エクレア
++「……あんた」
++[p]
++#主人公
++「一緒に作りたいんだ」
++[p]
++#抹茶エクレア
++「……そっか」
++[p]
++#主人公
++「……」
++[p]
++#抹茶エクレア
++「そう言うてくれるんは、嬉しいで」
++[p]
++#主人公
++「……うん」
++[p]
++#抹茶エクレア
++「ほな、もうちょっと、ここにおろかな」
++[p]
++#主人公
++「……ありがとう」
++[p]
++#抹茶エクレア
++「……うん」
++[p]
++[mask time="750" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_morning.png" time="1"]
++[chara_mod name="抹茶エクレア" face="quiet"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="750"]
++#抹茶エクレア
++「……ウチがほんまに考えてたこと、まだ話してへんな」
++[p]
++#主人公
++「……え？」
++[p]
++[eval exp="sf.march_end_02_seen = true; f.current_march_end = 'march_end_02'"]
++[jump target="*march_ending_menu"]
++
++*true_end_retry
++[clearstack stack="if"]
++[call storage="system/future_character_define.ks"]
++[call target="*march_character_define"]
++[mask time="450" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_night.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_show name="女神" left="80" top="90" time="1"]
++[mask_off time="450"]
++[jump target="*true_end_entry"]
++
++*true_end_entry
++[clearstack stack="if"]
++[if exp="sf.true_bad_seen !== true"]
++[jump target="*scene_03_10"]
++[endif]
++[eval exp="f.chapter = '03'; f.scene = '03_true'"]
++[cm]
++[clearfix]
++[hidemenubutton]
++[march_true_begin]
++[tb_show_message_window]
++[deffont color="0x3B2A1B" bold="true" size="28"]
++[resetfont]
++[cm]
++#主人公
++「……抹茶ちゃんが決めればいい」
++[march_true_wait at="3.259" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……え？」
++[march_true_wait at="5.780" minimum="1100"]
++[cm]
++#主人公
++「帰れる。帰らなくてもいい」
++[march_true_wait at="8.891" minimum="1100"]
++[cm]
++#主人公
++「でも、そこから先のことは、抹茶ちゃんの人生だ」
++[march_true_wait at="12.739" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……」
++[march_true_wait at="15.113" minimum="1100"]
++[cm]
++#主人公
++「自分は、この店を一緒に続けたい」
++[march_true_wait at="18.445" minimum="1100"]
++[cm]
++#主人公
++「それは、自分の気持ち」
++[march_true_wait at="21.408" minimum="1100"]
++[cm]
++#主人公
++「でも、それだけで君の答えを決めたくない」
++[march_true_wait at="25.036" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……あんた」
++[march_true_wait at="27.630" minimum="1100"]
++[cm]
++#主人公
++「帰っても、ここに残っても」
++[march_true_wait at="30.741" minimum="1100"]
++[cm]
++#主人公
++「君が選ぶなら、その選択を尊重したい」
++[march_true_wait at="34.221" minimum="1100"]
++[cm]
++#主人公
++「……だから、聞かせて」
++[march_true_wait at="37.185" minimum="1100"]
++[cm]
++#主人公
++「抹茶ちゃんは、どうしたい？」
++[march_true_wait at="40.369" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……四月な」
++[march_true_wait at="42.964" minimum="1100"]
++[cm]
++#主人公
++「うん」
++[march_true_wait at="45.338" minimum="1100"]
++[cm]
++#抹茶エクレア
++「ここ来た時は、世界一なって、帰るんやと思うてた」
++[march_true_wait at="49.260" minimum="1100"]
++[cm]
++#主人公
++「……うん」
++[march_true_wait at="51.781" minimum="1100"]
++[cm]
++#抹茶エクレア
++「せやけど」
++[march_true_wait at="54.302" minimum="1100"]
++[cm]
++#抹茶エクレア
++「五月、また来てくれた人がおって」
++[march_true_wait at="57.634" minimum="1100"]
++[cm]
++#抹茶エクレア
++「六月、七月、味が変わってもエクレアで」
++[march_true_wait at="61.188" minimum="1100"]
++[cm]
++#抹茶エクレア
++「八月は大騒ぎで、九月は久世さんに会うて」
++[march_true_wait at="64.815" minimum="1100"]
++[cm]
++#抹茶エクレア
++「十月は、知らん人に伝える練習した」
++[march_true_wait at="68.221" minimum="1100"]
++[cm]
++#抹茶エクレア
++「十一月は、女神様が普通にお客さんやった」
++[march_true_wait at="71.848" minimum="1100"]
++[cm]
++#抹茶エクレア
++「十二月は、あんたが無理してたら止めた」
++[march_true_wait at="75.402" minimum="1100"]
++[cm]
++#抹茶エクレア
++「一月は、百点より先に、人の顔見た」
++[march_true_wait at="78.808" minimum="1100"]
++[cm]
++#抹茶エクレア
++「二月は……」
++[march_true_wait at="81.403" minimum="1100"]
++[cm]
++#抹茶エクレア
++「一緒に、今できることをやろって決めた」
++[march_true_wait at="84.956" minimum="1100"]
++[cm]
++#主人公
++「……うん」
++[march_true_wait at="87.477" minimum="1100"]
++[cm]
++#抹茶エクレア
++「ウチ、ここで毎日作るのが、好きになってん」
++[march_true_wait at="91.178" minimum="1100"]
++[cm]
++#主人公
++「……」
++[march_true_wait at="93.552" minimum="1100"]
++[cm]
++#抹茶エクレア
++「世界一、ほんまに嬉しい」
++[march_true_wait at="96.589" minimum="1100"]
++[cm]
++#抹茶エクレア
++「でも、世界一になったら全部終わり、やないやろ？」
++[march_true_wait at="100.511" minimum="1100"]
++[cm]
++#主人公
++「……うん」
++[march_true_wait at="103.032" minimum="1100"]
++[cm]
++#抹茶エクレア
++「ここの店、明日も開くんやろ？」
++[march_true_wait at="106.291" minimum="1100"]
++[cm]
++#主人公
++「開くよ」
++[march_true_wait at="108.738" minimum="1100"]
++[cm]
++#抹茶エクレア
++「三好さんも、神田ちゃんも、また来るやろ？」
++[march_true_wait at="112.439" minimum="1100"]
++[cm]
++#主人公
++「うん」
++[march_true_wait at="114.813" minimum="1100"]
++[cm]
++#抹茶エクレア
++「藤代さんも、いつもの一個、買いに来るやろ？」
++[march_true_wait at="118.587" minimum="1100"]
++[cm]
++#主人公
++「たぶんね」
++[march_true_wait at="121.108" minimum="1100"]
++[cm]
++#抹茶エクレア
++「久世さんとも、また勝負したいし」
++[march_true_wait at="124.441" minimum="1100"]
++[cm]
++#主人公
++「……うん」
++[march_true_wait at="126.962" minimum="1100"]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_07_By_Your_Name.png" time="650"]
++[eval exp="sf.cg_march_event_07 = true"]
++[cm]
++#抹茶エクレア
++[emb exp="'「あんた……いや、' + window.MarchEnding.playerName(f.player_name) + 'と一緒に、な」'"]
++[march_true_wait at="130.368" minimum="1100"]
++[cm]
++#抹茶エクレア
++「せやから」
++[march_true_wait at="132.889" minimum="1100"]
++[mask time="400" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_night.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[chara_show name="女神" left="80" top="90" time="1"]
++[mask_off time="400"]
++[cm]
++#抹茶エクレア
++「女神様」
++[march_true_wait at="135.336" minimum="1100"]
++[cm]
++#女神
++「はい」
++[march_true_wait at="137.709" minimum="1100"]
++[cm]
++#抹茶エクレア
++「ウチ、帰らへん」
++[march_true_wait at="140.452" minimum="1100"]
++[cm]
++#女神
++「……そうですか」
++[march_true_wait at="143.194" minimum="1100"]
++[cm]
++#抹茶エクレア
++「うん」
++[march_true_wait at="145.567" minimum="1100"]
++[cm]
++#女神
++「お約束は、世界一になれば帰れるようにすること」
++[march_true_wait at="149.416" minimum="1100"]
++[cm]
++#女神
++「帰らなければならない、というものではありません」
++[march_true_wait at="153.338" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……知ってる」
++[march_true_wait at="156.007" minimum="1100"]
++[cm]
++#女神
++「では、帰還の道は開かずにおきましょう」
++[march_true_wait at="159.560" minimum="1100"]
++[cm]
++#女神
++「あなた自身の望む答えであるなら、それでよいのです」
++[march_true_wait at="163.556" minimum="1100"]
++[cm]
++#主人公
++「……」
++[march_true_wait at="165.930" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……なんや、その顔」
++[march_true_wait at="168.820" minimum="1100"]
++[cm]
++#主人公
++「うまく言えなくて」
++[march_true_wait at="171.636" minimum="1100"]
++[cm]
++#抹茶エクレア
++「ほな、言わんでもええで」
++[march_true_wait at="174.673" minimum="1100"]
++[cm]
++#主人公
++「でも、ありがとう」
++[march_true_wait at="177.489" minimum="1100"]
++[cm]
++#抹茶エクレア
++「そこは言うんか」
++[march_true_wait at="180.231" minimum="1100"]
++[cm]
++#主人公
++「言いたいから」
++[march_true_wait at="182.900" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……ええよ」
++[march_true_wait at="185.494" minimum="1100"]
++[cm]
++#女神
++「ごちそうさまでした」
++[march_true_wait at="188.384" minimum="1100"]
++[cm]
++#抹茶エクレア
++「今日、まだエクレア出してへんで？」
++[march_true_wait at="191.790" minimum="1100"]
++[cm]
++#女神
++「一年分、十分にいただきましたよ」
++[march_true_wait at="195.122" minimum="1100"]
++[cm]
++#主人公
++「……女神様も変わりましたね」
++[march_true_wait at="198.307" minimum="1100"]
++[cm]
++#女神
++「お二人を見ておりましたから」
++[march_true_wait at="201.492" minimum="1100"]
++[chara_hide name="女神" time="650"]
++[cm]
++#抹茶エクレア
++[emb exp="'「……なあ、' + window.MarchEnding.playerName(f.player_name) + '」'"]
++[march_true_wait at="204.234" minimum="1100"]
++[cm]
++#主人公
++「うん？」
++[march_true_wait at="206.681" minimum="1100"]
++[cm]
++#抹茶エクレア
++「明日、何個作る？」
++[march_true_wait at="209.497" minimum="1100"]
++[cm]
++#主人公
++「いつもどおり」
++[march_true_wait at="212.166" minimum="1100"]
++[cm]
++#抹茶エクレア
++「千個？」
++[march_true_wait at="214.613" minimum="1100"]
++[cm]
++#主人公
++「最後までそれ？」
++[march_true_wait at="217.355" minimum="1100"]
++[cm]
++#抹茶エクレア
++「最後ちゃうやろ」
++[march_true_wait at="220.098" minimum="1100"]
++[cm]
++#主人公
++「……そうだね」
++[march_true_wait at="222.766" minimum="1100"]
++[cm]
++#抹茶エクレア
++「世界一の、その次の日やで」
++[march_true_wait at="225.877" minimum="1100"]
++[cm]
++#主人公
++「……うん」
++[march_true_wait at="228.398" minimum="1100"]
++[mask time="650" color="0x000000"]
++[cm]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"","background-repeat":"","background-position":"","background-color":""});
++[endscript]
++[bg storage="apr_kitchen_morning.png" time="1"]
++[chara_mod name="抹茶エクレア" face="default"]
++[chara_show name="抹茶エクレア" left="790" top="90" time="250"]
++[mask_off time="650"]
++[skipstop]
++[chara_hide name="抹茶エクレア" time="0"]
++[chara_hide name="三好文子" time="0"]
++[chara_hide name="神田姫花" time="0"]
++[chara_hide name="久世玲" time="0"]
++[chara_hide name="藤代誠" time="0"]
++[chara_hide name="女神" time="0"]
++[iscript]
++TYRANO.kag.layer.getLayer("base", "fore").css({"background-size":"contain","background-repeat":"no-repeat","background-position":"center","background-color":"#000"});
++[endscript]
++[bg storage="cg/march/CG15_08_The_Day_After.png" time="650"]
++[eval exp="sf.cg_march_event_08 = true"]
++[cm]
++#三好文子
++「おはよう。今日も開いてる？」
++[march_true_wait at="231.583" minimum="1100"]
++[cm]
++#抹茶エクレア
++「もちろんやで！」
++[march_true_wait at="234.325" minimum="1100"]
++[cm]
++#主人公
++「おはようございます」
++[march_true_wait at="237.215" minimum="1100"]
++[playse storage="se_shop_door_chime.wav" volume="65" loop="false"]
++[cm]
++#抹茶エクレア
++「ほな、まず何から？」
++[march_true_wait at="240.105" minimum="1100"]
++[cm]
++#主人公
++「クリームから」
++[march_true_wait at="242.773" minimum="1100"]
++[cm]
++#抹茶エクレア
++「香りが先。甘さはあとから」
++[march_true_wait at="245.884" minimum="1100"]
++[cm]
++#主人公
++「覚えてる」
++[march_true_wait at="248.405" minimum="1100"]
++[cm]
++#抹茶エクレア
++「……そっか」
++[march_true_wait at="251.000" minimum="1100"]
++[cm]
++#
++世界一になった次の日も、店は朝から仕込みだった。
++[march_true_wait at="260.000" minimum="6500"]
++[cm]
++[clearfix]
++[tb_hide_message_window]
++[stopse]
++[march_true_card]
++[jump storage="title_screen.ks" target="*title"]
++
++*march_ending_menu
++[clearstack stack="if"]
++[cm]
++[clearfix]
++[tb_show_message_window]
++[deffont color="0x3B2A1B" bold="true" size="28"]
++[resetfont]
++[hidemenubutton]
++[restore_april_quick_menu]
++[if exp="f.current_march_end == 'core_017'"]
++#
++[font color="0x305332" bold="true" size="28"]
++真・BAD END 017『約束どおり』
++[font color="0x3B2A1B" bold="true" size="28"]
++[r]
++「……あんたに、聞いてほしいことがあってん」
++; Registration is after the complete BAD card has been constructed, never at movie end.
++[if exp="f.scene == '03_12a'"]
++[eval exp="sf.core_bad_017 = true; sf.true_bad_seen = true; f.scene = '03_ending_menu'"]
++[endif]
++[elsif exp="f.current_march_end == 'march_end_01'"]
++#
++[font color="0x305332" bold="true" size="28"]
++END『帰るべき場所』
++[resetfont]
++[else]
++#
++[font color="0x305332" bold="true" size="28"]
++END『あなたの答え』
++[resetfont]
++[endif]
++[glink text="タイトルへ" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="150" bold="true" storage="title_screen.ks" target="*title" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
++[glink text="記録" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="245" bold="true" storage="system_common.ks" target="*records_from_march_end" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
++[if exp="f.current_march_end != 'core_017' && sf.true_bad_seen === true"]
++[glink text="最後の選択肢へ" color="green" font_color="0x3B2A1B" x="675" width="400" height="85" size="23" y="340" bold="true" target="*final_choice" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
++[endif]
++[s]
++
++*march_character_define
++[if exp="!TYRANO.kag.stat.charas['女神']"]
++[chara_new name="女神" jname="女神" storage="apr_goddess.png" width="495" height="660"]
++[endif]
++[return]
+--- a/data/scenario/n04_april.ks
++++ b/data/scenario/n04_april.ks
+@@ -573,6 +573,17 @@
+ f.scene = "04_04";
+ [endscript]
+ 
++[if exp="sf.true_bad_seen === true"]
++[glink target="*choice_04_a" text="「じゃあ、1000個作ろう」" color="green" x="320" y="90" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[glink target="*choice_04_b" text="「いや、10個だけにしよう」" color="green" x="320" y="185" width="640" height="85" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++
++[if exp="sf.core_bad_001 == true || sf.core_bad_002 == true"]
++[glink target="*choice_04_c" text="「その前に、何個なら売れそうか調べよう」" color="green" x="320" y="280" width="640" height="85" size="18" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_learned_normal.png" enterimg="april_ui/v2/choices/choice_learned_hover.png" name="april_choice april_learned"]
++[endif]
++
++[glink target="*april_march_insight" text="INSIGHT｜「……君は、本当に帰りたいの？」" color="green" x="320" y="375" width="640" height="85" size="20" font_color="0x3B2A1B" bold="true" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
++[s]
++[else]
+ [glink target="*choice_04_a" text="「じゃあ、1000個作ろう」" color="green" x="320" y="145" width="640" height="135" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
+ [glink target="*choice_04_b" text="「いや、10個だけにしよう」" color="green" x="320" y="299" width="640" height="135" size="22" font_color="0x3B2A1B" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_choice"]
+ 
+@@ -581,6 +592,7 @@
+ [endif]
+ 
+ [s]
++[endif]
+ 
+ *choice_04_a
+ [clearstack stack="if"]
+@@ -1911,3 +1923,59 @@
+ ; 5月未実装時はタイトル/開発中画面へ戻す。
+ [jump storage="system_common.ks" target="*april_clear"]
+ 
++
++*april_march_insight
++[clearstack stack="if"]
++[if exp="sf.true_bad_seen !== true"]
++[jump target="*choice_04_production"]
++[endif]
++[cm]
++#主人公
++「……君は、本当に帰りたいの？」
++[p]
++#抹茶エクレア
++「……え？」
++[p]
++#主人公
++「女神様の条件を達成したら、帰れるんだよね」
++[p]
++#抹茶エクレア
++「……そうやけど」
++[p]
++#主人公
++「帰れることと、帰りたいことは違うから」
++[p]
++#抹茶エクレア
++「……いきなり難しいこと聞くなあ」
++[p]
++#主人公
++「……ごめん」
++[p]
++#抹茶エクレア
++「今はまだ、ウチも分からへん」
++[p]
++#抹茶エクレア
++「世界一なりたいんは、本気やで」
++[p]
++#主人公
++「うん」
++[p]
++#抹茶エクレア
++「でも、これからどうなるかは、まだ分からへん」
++[p]
++#主人公
++「そうだよね」
++[p]
++#抹茶エクレア
++「ほな、まず一緒に作ってみよ」
++[p]
++#主人公
++「……うん」
++[p]
++#抹茶エクレア
++「その時になったら、また聞いてな」
++[p]
++#主人公
++「約束する」
++[p]
++[jump target="*choice_04_c"]
+--- a/data/scenario/system_common.ks
++++ b/data/scenario/system_common.ks
+@@ -87,7 +87,7 @@
+ [resetfont]
+ [r]
+ 『[emb exp="f.april_bad.title"]』[r]
+-[if exp="f.april_bad.month != '01' && f.april_bad.month != '02'"]
++[if exp="f.april_bad.month != '01' && f.april_bad.month != '02' && f.april_bad.month != '03'"]
+ 失敗の記録に登録しました。[r]
+ [endif]
+ [emb exp="f.april_bad.lesson"]
+@@ -124,7 +124,7 @@
+ } else {
+  f.april_record_tab = "CORE";
+  var badId = String((f.april_bad && f.april_bad.id) || "001");
+- f.april_record_selected = /^(?:00[1-9]|01[0-6])$/.test(badId) ? "core_" + badId : "core_001";
++ f.april_record_selected = /^(?:00[1-9]|01[0-7])$/.test(badId) ? "core_" + badId : "core_001";
+ }
+ [endscript]
+ [jump target="*records_display"]
+@@ -136,19 +136,19 @@
+ [iscript]
+ f.april_record_month = f.current_clear_month || "04";
+ f.april_record_tab = "CORE";
+-f.april_record_selected = f.april_record_month === "02" ? "february_clear" : (f.april_record_month === "01" ? "january_clear" : (f.april_record_month === "12" ? "december_clear" : (f.april_record_month === "11" ? "november_clear" : (f.april_record_month === "10" ? "october_clear" : (f.april_record_month === "09" ? "september_clear" : (f.april_record_month === "08" ? "august_clear" : (f.april_record_month === "07" ? "july_clear" : (f.april_record_month === "06" ? "june_clear" : (f.april_record_month === "05" ? "may_clear" : "clear")))))))));
++f.april_record_selected = f.april_record_month === "03" ? "march_clear" : (f.april_record_month === "02" ? "february_clear" : (f.april_record_month === "01" ? "january_clear" : (f.april_record_month === "12" ? "december_clear" : (f.april_record_month === "11" ? "november_clear" : (f.april_record_month === "10" ? "october_clear" : (f.april_record_month === "09" ? "september_clear" : (f.april_record_month === "08" ? "august_clear" : (f.april_record_month === "07" ? "july_clear" : (f.april_record_month === "06" ? "june_clear" : (f.april_record_month === "05" ? "may_clear" : "clear"))))))))));
+ [endscript]
+ [jump target="*records_display"]
+ 
+ *records_tab_core
+ [clearstack stack="if"]
+ [eval exp="f.april_record_tab = 'CORE'"]
+-[eval exp="f.april_record_selected = f.april_record_month == '02' ? 'core_016' : (f.april_record_month == '01' ? 'core_015' : (f.april_record_month == '12' ? 'core_014' : (f.april_record_month == '11' ? 'core_012' : (f.april_record_month == '10' ? 'core_010' : ((f.april_record_month == '09' ? 'core_009' : (f.april_record_month == '08' ? 'core_008' : (f.april_record_month == '07' ? 'core_007' : (f.april_record_month == '06' ? 'core_005' : (f.april_record_month == '05' ? 'core_003' : 'core_001'))))))))))"]
++[eval exp="f.april_record_selected = f.april_record_month == '03' ? 'core_017' : (f.april_record_month == '02' ? 'core_016' : (f.april_record_month == '01' ? 'core_015' : (f.april_record_month == '12' ? 'core_014' : (f.april_record_month == '11' ? 'core_012' : (f.april_record_month == '10' ? 'core_010' : ((f.april_record_month == '09' ? 'core_009' : (f.april_record_month == '08' ? 'core_008' : (f.april_record_month == '07' ? 'core_007' : (f.april_record_month == '06' ? 'core_005' : (f.april_record_month == '05' ? 'core_003' : 'core_001')))))))))))"]
+ [jump target="*records_display"]
+ *records_tab_mini
+ [clearstack stack="if"]
+ [eval exp="f.april_record_tab = 'MINI'"]
+-[eval exp="f.april_record_selected = f.april_record_month == '02' ? 'mini_m10' : (f.april_record_month == '01' ? 'mini_m08' : (f.april_record_month == '12' ? 'mini_m06' : (f.april_record_month == '11' ? 'mini_m04' : (f.april_record_month == '10' ? 'october_mini_none' : ((f.april_record_month == '09' ? 'september_mini_none' : (f.april_record_month == '08' ? 'august_mini_none' : (f.april_record_month == '07' ? 'july_mini_none' : (f.april_record_month == '06' ? 'june_mini_none' : (f.april_record_month == '05' ? 'may_mini_none' : 'mini_m01'))))))))))"]
++[eval exp="f.april_record_selected = f.april_record_month == '03' ? 'mini_m12' : (f.april_record_month == '02' ? 'mini_m10' : (f.april_record_month == '01' ? 'mini_m08' : (f.april_record_month == '12' ? 'mini_m06' : (f.april_record_month == '11' ? 'mini_m04' : (f.april_record_month == '10' ? 'october_mini_none' : ((f.april_record_month == '09' ? 'september_mini_none' : (f.april_record_month == '08' ? 'august_mini_none' : (f.april_record_month == '07' ? 'july_mini_none' : (f.april_record_month == '06' ? 'june_mini_none' : (f.april_record_month == '05' ? 'may_mini_none' : 'mini_m01')))))))))))"]
+ [jump target="*records_display"]
+ *records_tab_cg
+ [clearstack stack="if"]
+@@ -209,8 +209,8 @@
+ *records_month_selection
+ [clearstack stack="if"]
+ [iscript]
+-if (f.april_record_tab === "CORE") f.april_record_selected = f.april_record_month === "02" ? "core_016" : (f.april_record_month === "01" ? "core_015" : (f.april_record_month === "12" ? "core_014" : (f.april_record_month === "11" ? "core_012" : (f.april_record_month === "10" ? "core_010" : (f.april_record_month === "09" ? "core_009" : (f.april_record_month === "08" ? "core_008" : (f.april_record_month === "07" ? "core_007" : (f.april_record_month === "06" ? "core_005" : (f.april_record_month === "05" ? "core_003" : "core_001")))))))));
+-else if (f.april_record_tab === "MINI") f.april_record_selected = f.april_record_month === "02" ? "mini_m10" : (f.april_record_month === "01" ? "mini_m08" : (f.april_record_month === "12" ? "mini_m06" : (f.april_record_month === "11" ? "mini_m04" : (f.april_record_month === "10" ? "october_mini_none" : (f.april_record_month === "09" ? "september_mini_none" : (f.april_record_month === "08" ? "august_mini_none" : (f.april_record_month === "07" ? "july_mini_none" : (f.april_record_month === "06" ? "june_mini_none" : (f.april_record_month === "05" ? "may_mini_none" : "mini_m01")))))))));
++if (f.april_record_tab === "CORE") f.april_record_selected = f.april_record_month === "03" ? "core_017" : (f.april_record_month === "02" ? "core_016" : (f.april_record_month === "01" ? "core_015" : (f.april_record_month === "12" ? "core_014" : (f.april_record_month === "11" ? "core_012" : (f.april_record_month === "10" ? "core_010" : (f.april_record_month === "09" ? "core_009" : (f.april_record_month === "08" ? "core_008" : (f.april_record_month === "07" ? "core_007" : (f.april_record_month === "06" ? "core_005" : (f.april_record_month === "05" ? "core_003" : "core_001"))))))))));
++else if (f.april_record_tab === "MINI") f.april_record_selected = f.april_record_month === "03" ? "mini_m12" : (f.april_record_month === "02" ? "mini_m10" : (f.april_record_month === "01" ? "mini_m08" : (f.april_record_month === "12" ? "mini_m06" : (f.april_record_month === "11" ? "mini_m04" : (f.april_record_month === "10" ? "october_mini_none" : (f.april_record_month === "09" ? "september_mini_none" : (f.april_record_month === "08" ? "august_mini_none" : (f.april_record_month === "07" ? "july_mini_none" : (f.april_record_month === "06" ? "june_mini_none" : (f.april_record_month === "05" ? "may_mini_none" : "mini_m01"))))))))));
+ else f.april_record_selected = f.april_record_cg_category === "MINI" ? "mini_01" : "event_01";
+ [endscript]
+ [jump target="*records_display"]
+@@ -239,6 +239,66 @@
+ [clearstack stack="if"]
+ [eval exp="f.april_record_selected = 'core_006'"]
+ [jump target="*records_display"]
++*records_select_core_017
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'core_017'"]
++[jump target="*records_display"]
++
++*records_select_march_clear
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'march_clear'"]
++[jump target="*records_display"]
++
++*records_select_march_end_01
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'march_end_01'"]
++[jump target="*records_display"]
++
++*records_select_march_end_02
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'march_end_02'"]
++[jump target="*records_display"]
++
++*records_select_march_true
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'march_true'"]
++[jump target="*records_display"]
++
++*records_select_mini_m12
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'mini_m12'"]
++[jump target="*records_display"]
++
++*records_select_mini_m13
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'mini_m13'"]
++[jump target="*records_display"]
++
++*records_select_cg_event_04
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'event_04'"]
++[jump target="*records_display"]
++
++*records_select_cg_event_05
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'event_05'"]
++[jump target="*records_display"]
++
++*records_select_cg_event_06
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'event_06'"]
++[jump target="*records_display"]
++
++*records_select_cg_event_07
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'event_07'"]
++[jump target="*records_display"]
++
++*records_select_cg_event_08
++[clearstack stack="if"]
++[eval exp="f.april_record_selected = 'event_08'"]
++[jump target="*records_display"]
++
+ *records_select_core_016
+ [clearstack stack="if"]
+ [eval exp="f.april_record_selected = 'core_016'"]
+@@ -427,6 +487,9 @@
+ [eval exp="f.april_record_selected = 'mini_03'"]
+ [jump target="*records_display"]
+ *records_display
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
+ [clearstack stack="if"]
+ [free layer="1" name="archive_cg_image"]
+ [if exp="f.april_record_screen_open == true"]
+@@ -549,6 +612,100 @@
+  core_008:{title:"BAD008｜一夜の世界一",classification:"CORE BAD",status:(sf.core_bad_008===true?"回収済み":""),condition1:"CHOICE 01『今夜だけの“超限定”で、一気に数字を取りにいこう』",body1:"一晩だけ、数字は跳ね上がった。",body2:"行列ができ、売り切れて、",body3:"急上昇の一番上にも名前が載った。",body4:"でも翌朝、店には次へつながるものが",body5:"ほとんど残っていなかった。",body6:"一度だけ一番になることと、世界一であり続けることは違う。",comment:"一位のスクショだけ残っても、",comment2:"明日の店は開けなあかんねんな……",note:""},
+  august_clear:{title:"8月 CLEAR『バズった次の日』",classification:"CLEAR",status:(sf.normal_ch08_clear===true?"達成済み":""),condition1:"8月の物語を最後まで進める。",body1:"大きな数字が悪いわけではない。",body2:"一晩でたくさんの人に届くことも、",body3:"店にとっては大きなチャンスだった。",body4:"でも本当に残したかったのは、一位の画面ではなく、",body5:"次の日にも店を開けられること。また買えること。",body6:"また来たいと思ってもらうこと。",body7:"八月に覚えたのは、バズの“その次”を作ることだった。",comment:"一晩だけやなくて、次の日も続いてたら、",comment2:"もっと強いやんな",note:""}
+ };
++var marchArchiveMap = {
++ "core_017": {
++  "title": "真・BAD END 017『約束どおり』",
++  "classification": "CORE BAD",
++  "flag": "core_bad_017",
++  "condition1": "",
++  "raw_body": "一年かけて、世界一の抹茶エクレアを作った。女神との約束も守った。抹茶ちゃんは帰ることができた。けれど「三月が終わったら話す」という約束だけは、果たされなかった。帰る道があることと、本人が帰りたいことは同じではない。",
++  "raw_comment": "「……あんたに、聞いてほしいことがあってん」",
++  "body1": "一年かけて、世界一の抹茶エクレアを作った。女神との約束も守った。抹",
++  "body2": "茶ちゃんは帰ることができた。けれど「三月が終わったら話す」という約",
++  "body3": "束だけは、果たされなかった。帰る道があることと、本人が帰りたいこと",
++  "body4": "は同じではない。",
++  "comment": "「……あんたに、聞いてほしいことがあってん」",
++  "comment2": ""
++ },
++ "mini_m12": {
++  "title": "M12｜優勝スピーチ三時間",
++  "classification": "MINI BAD",
++  "flag": "mini_bad_m12",
++  "condition1": "",
++  "raw_body": "優勝後の挨拶を練習したら、一年の思い出を語りきれず三時間。肝心の出品準備が止まってしまった。",
++  "raw_comment": "「思い出、いっぱいやな……でも大会前に話しきるもんちゃうわ！」",
++  "body1": "優勝後の挨拶を練習したら、一年の思い出を語りきれず三時間。肝心の出",
++  "body2": "品準備が止まってしまった。",
++  "comment": "「思い出、いっぱいやな……でも大会前に話しきるもんちゃうわ！」",
++  "comment2": ""
++ },
++ "mini_m13": {
++  "title": "M13｜世界一、先に印刷",
++  "classification": "MINI BAD",
++  "flag": "mini_bad_m13",
++  "condition1": "",
++  "raw_body": "優勝後の帯紙を大量に刷った。でも、まだ世界一とは決まっていない。先に必要なのは、称号ではなく出品する一個だった。",
++  "raw_comment": "「世界一って、印刷したらなれるもんちゃうな……」",
++  "body1": "優勝後の帯紙を大量に刷った。でも、まだ世界一とは決まっていない。先",
++  "body2": "に必要なのは、称号ではなく出品する一個だった。",
++  "comment": "「世界一って、印刷したらなれるもんちゃうな……」",
++  "comment2": ""
++ },
++ "march_end_01": {
++  "title": "END『帰るべき場所』",
++  "classification": "通常END",
++  "flag": "march_end_01_seen",
++  "condition1": "",
++  "raw_body": "心配するあまり、帰る方が幸せだと結論を伝えた。相手の未来を思ったことは本当でも、その未来を自分が決めてしまった。",
++  "raw_comment": "",
++  "body1": "心配するあまり、帰る方が幸せだと結論を伝えた。相手の未来を思ったこ",
++  "body2": "とは本当でも、その未来を自分が決めてしまった。",
++  "comment": "",
++  "comment2": ""
++ },
++ "march_end_02": {
++  "title": "END『あなたの答え』",
++  "classification": "通常END",
++  "flag": "march_end_02_seen",
++  "condition1": "",
++  "raw_body": "一緒にいたいという願いは、素直に伝えられた。けれど今度も、抹茶ちゃん自身がどうしたいかを最後まで聞けなかった。",
++  "raw_comment": "",
++  "body1": "一緒にいたいという願いは、素直に伝えられた。けれど今度も、抹茶ちゃ",
++  "body2": "ん自身がどうしたいかを最後まで聞けなかった。",
++  "comment": "",
++  "comment2": ""
++ },
++ "march_true": {
++  "title": "TRUE END『世界一の、その次の日』",
++  "classification": "TRUE END",
++  "flag": "true_end_seen",
++  "condition1": "",
++  "raw_body": "世界一になるという約束を果たした。帰れる道もある。それでも、これからをどう生きるかは本人が決める。相手の答えを勝手に決めず、聞いて、一緒に次の日を迎えた。",
++  "raw_comment": "「世界一になった次の日も、そのまた次の日も。ウチら、また作れるんやな」",
++  "body1": "世界一になるという約束を果たした。帰れる道もある。それでも、これか",
++  "body2": "らをどう生きるかは本人が決める。相手の答えを勝手に決めず、聞いて、",
++  "body3": "一緒に次の日を迎えた。",
++  "comment": "「世界一になった次の日も、そのまた次の日も。ウチら、また作れるんや",
++  "comment2": "な」"
++ },
++ "march_clear": {
++  "title": "3月 CLEAR｜世界一の抹茶エクレア",
++  "classification": "月間クリア",
++  "flag": "normal_ch03_clear",
++  "condition1": "",
++  "raw_body": "World Éclair Grand Prix、総合第1位は……Pâtisserie Komorebi。Matcha Éclair!",
++  "raw_comment": "",
++  "body1": "World Éclair Grand Prix、総合第1位は……",
++  "body2": "Pâtisserie Komorebi。Matcha Éclair!",
++  "comment": "",
++  "comment2": ""
++ }
++};
++Object.keys(marchArchiveMap).forEach(function (key) {
++ var item = marchArchiveMap[key];
++ item.status = sf[item.flag] === true ? (key === "march_clear" ? "達成済み" : "回収済み") : "";
++ f["march_record_list_"+key] = item.status ? item.title : "？？？";
++});
+ var februaryArchiveMap = {
+  "core_016": {
+   "title": "BAD016｜帰還最優先",
+@@ -859,8 +1016,101 @@
+ f.april_record_list_core_003 = (sf.core_bad_003 === true ? mayArchiveMap.core_003.title : "？？？");
+ f.april_record_list_core_004 = (sf.core_bad_004 === true ? mayArchiveMap.core_004.title : "？？？");
+ f.april_record_list_may_clear = (sf.normal_ch05_clear === true ? mayArchiveMap.may_clear.title : "？？？");
+-f.april_record_detail_body3 = ""; f.april_record_detail_body4 = ""; f.april_record_detail_body5 = ""; f.april_record_detail_body6 = ""; f.april_record_detail_body7 = ""; f.april_record_detail_body8 = ""; f.april_record_detail_comment2 = ""; f.april_record_is_may_clear = false; f.april_record_is_july_bad = false; f.april_record_is_august_bad = false; f.april_record_is_august_clear = false; f.april_record_is_september_bad = false; f.april_record_is_september_clear = false; f.april_record_is_october_bad = false; f.april_record_is_october_clear = false; f.april_record_is_november_bad = false; f.april_record_is_november_clear = false; f.april_record_is_december_bad = false; f.april_record_is_december_clear = false; f.april_record_is_january_bad = false; f.april_record_is_january_clear = false; f.april_record_is_february_bad = false; f.april_record_is_february_clear = false;
+-if (f.april_record_month == "02" && f.april_record_tab == "CG") {
++f.april_record_detail_body3 = ""; f.april_record_detail_body4 = ""; f.april_record_detail_body5 = ""; f.april_record_detail_body6 = ""; f.april_record_detail_body7 = ""; f.april_record_detail_body8 = ""; f.april_record_detail_comment2 = ""; f.april_record_is_may_clear = false; f.april_record_is_july_bad = false; f.april_record_is_august_bad = false; f.april_record_is_august_clear = false; f.april_record_is_september_bad = false; f.april_record_is_september_clear = false; f.april_record_is_october_bad = false; f.april_record_is_october_clear = false; f.april_record_is_november_bad = false; f.april_record_is_november_clear = false; f.april_record_is_december_bad = false; f.april_record_is_december_clear = false; f.april_record_is_january_bad = false; f.april_record_is_january_clear = false; f.april_record_is_february_bad = false; f.april_record_is_february_clear = false; f.april_record_is_march = false;
++if (f.april_record_month == "03" && f.april_record_tab == "CG") {
++ var marchCgRecords = {
++ "event_01": {
++  "title": "CG15_01｜Across the Same Stage",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_01_Across_the_Same_Stage.png",
++  "flag": "cg_march_event_01",
++  "caption": "「九月は催事の隣同士。三月は、同じ決勝の舞台へ。二人とも、今度は自分たちの味で勝負する。」"
++ },
++ "event_02": {
++  "title": "CG15_02｜The Real Pâtissier",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_02_The_Real_Patissier.png",
++  "flag": "cg_march_event_02",
++  "caption": "「『手加減はしない』。久世玲が、一個のエクレアに積み上げてきた技術のすべてを注ぎ込む。」"
++ },
++ "event_03": {
++  "title": "CG15_03｜One Bite, One World",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_03_One_Bite_One_World.png",
++  "flag": "cg_march_event_03",
++  "caption": "「十月に言葉を整えた味を、今度は世界の人がひと口。返ってきたのは、いつもの店でも聞いた『もう一つ』だった。」"
++ },
++ "event_04": {
++  "title": "CG15_04｜The World's Best Éclair",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_04_The_Worlds_Best_Eclair.png",
++  "flag": "cg_march_event_04",
++  "caption": "「失敗を重ね、聞いて、作り直した一年。その一個が、世界一に選ばれた。」"
++ },
++ "event_05": {
++  "title": "CG15_05｜One Last Look",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_05_One_Last_Look.png",
++  "flag": "cg_march_event_05",
++  "caption": "「世界一になった夜、抹茶ちゃんは厨房から帰っていった。『三月が終わったら話す』という約束を残して。」"
++ },
++ "event_06": {
++  "title": "CG15_06｜The Promise Left Unspoken",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_06_The_Promise_Left_Unspoken.png",
++  "flag": "cg_march_event_06",
++  "caption": "「世界一の店は、今日も開いている。それでも、一緒に話すはずだった言葉だけが残った。」"
++ },
++ "event_07": {
++  "title": "CG15_07｜By Your Name",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_07_By_Your_Name.png",
++  "flag": "cg_march_event_07",
++  "caption": "「世界一になったその夜、抹茶ちゃんは初めて相棒を名前で呼んだ。答えを自分の言葉で伝えるために。」"
++ },
++ "event_08": {
++  "title": "CG15_08｜The Day After",
++  "kind": "イベントCG",
++  "file": "cg/march/CG15_08_The_Day_After.png",
++  "flag": "cg_march_event_08",
++  "caption": "「世界一の、その次の日。いつもの厨房には、いつもの仕込みと、これからも続く日常があった。」"
++ },
++ "mini_01": {
++  "title": "SD15_01｜優勝スピーチ三時間",
++  "kind": "ミニイベントCG",
++  "file": "cg/march/SD15_01_MiniBad012_Three_Hour_Speech.png",
++  "flag": "cg_march_mini_01",
++  "caption": "「優勝後のスピーチを練習していたら三時間。思い出が多すぎて、出品準備まで進めなかった。」"
++ },
++ "mini_02": {
++  "title": "SD15_02｜世界一、先に印刷",
++  "kind": "ミニイベントCG",
++  "file": "cg/march/SD15_02_MiniBad013_Print_First.png",
++  "flag": "cg_march_mini_02",
++  "caption": "「優勝記念の帯紙を先に刷った。けれど世界一は、まだ誰にも決めてもらっていなかった。」"
++ }
++};
++ var marchCgRec = marchCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? marchCgRecords.mini_01 : marchCgRecords.event_01);
++ var marchCgOpened = sf[marchCgRec.flag] === true;
++ f.april_record_locked = !marchCgOpened; f.april_record_detail_title = marchCgOpened ? marchCgRec.title : "？？？";
++ f.april_record_detail_meta = marchCgOpened ? "分類："+marchCgRec.kind+"　｜　月：3月　｜　状態：閲覧可能" : "";
++ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
++ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
++ f.april_record_detail_comment = marchCgOpened ? marchCgRec.caption : ""; f.april_record_detail_note = "";
++ f.april_record_cg_unlocked = marchCgOpened; f.april_record_cg_file = marchCgRec.file;
++ Object.keys(marchCgRecords).forEach(function (key) {
++   f["march_record_list_cg_"+key] = sf[marchCgRecords[key].flag] === true ? marchCgRecords[key].title : "？？？";
++ });
++} else if (f.april_record_month == "03") {
++ var marchRec = marchArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? marchArchiveMap.mini_m12 : marchArchiveMap.core_017);
++ f.april_record_locked = marchRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : marchRec.title;
++ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+marchRec.classification+"　｜　月：3月　｜　状態："+marchRec.status;
++ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
++ for (var marchLine=1; marchLine<=8; marchLine++) f["april_record_detail_body"+marchLine] = f.april_record_locked ? "" : (marchRec["body"+marchLine] || "");
++ f.april_record_detail_comment = f.april_record_locked ? "" : marchRec.comment;
++ f.april_record_detail_comment2 = f.april_record_locked ? "" : marchRec.comment2;
++ f.april_record_detail_note = ""; f.april_record_is_march = true;
++} else if (f.april_record_month == "02" && f.april_record_tab == "CG") {
+  var februaryCgRecords = {
+  "event_01": {
+   "title": "CG14_01｜Whose Peace of Mind?",
+@@ -1354,8 +1604,111 @@
+  f.april_record_detail_comment=(f.april_record_locked ? "" : rec.comment); f.april_record_detail_note=(f.april_record_locked ? "" : rec.note);
+ }[endscript]
+ [ptext layer="1" name="archive_text" text=&f.april_record_heading x="110" y="171" size="23" bold="true" color="0x305332" edge="" width="480"]
+-[if exp="f.april_record_month != '04' && f.april_record_month != '05' && f.april_record_month != '06' && f.april_record_month != '07' && f.april_record_month != '08' && f.april_record_month != '09' && f.april_record_month != '10' && f.april_record_month != '11' && f.april_record_month != '12' && f.april_record_month != '01' && f.april_record_month != '02'"]
++[if exp="f.april_record_month != '04' && f.april_record_month != '05' && f.april_record_month != '06' && f.april_record_month != '07' && f.april_record_month != '08' && f.april_record_month != '09' && f.april_record_month != '10' && f.april_record_month != '11' && f.april_record_month != '12' && f.april_record_month != '01' && f.april_record_month != '02' && f.april_record_month != '03'"]
+ [ptext layer="1" name="archive_text" text="この月の記録は未実装です" x="78" y="229" size="19" bold="true" color="0x6C542F" edge="" width="500"]
++[elsif exp="f.april_record_month == '03'"]
++[if exp="f.april_record_tab == 'CORE'"]
++[if exp="f.april_record_selected == 'core_017'"]
++[glink text=&f.march_record_list_core_017 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_017" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_core_017 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_017" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'march_clear'"]
++[glink text=&f.march_record_list_march_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_march_clear" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_march_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_march_clear" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'march_end_01'"]
++[glink text=&f.march_record_list_march_end_01 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_march_end_01" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_march_end_01 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_march_end_01" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'march_end_02'"]
++[glink text=&f.march_record_list_march_end_02 color="green" font_color="0x3B2A1B" x="78" y="374" width="520" height="44" size="16" bold="true" target="*records_select_march_end_02" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_march_end_02 color="green" font_color="0x3B2A1B" x="78" y="374" width="520" height="44" size="16" bold="true" target="*records_select_march_end_02" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'march_true'"]
++[glink text=&f.march_record_list_march_true color="green" font_color="0x3B2A1B" x="78" y="424" width="520" height="44" size="16" bold="true" target="*records_select_march_true" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_march_true color="green" font_color="0x3B2A1B" x="78" y="424" width="520" height="44" size="16" bold="true" target="*records_select_march_true" name="archive_list_item"]
++[endif]
++[elsif exp="f.april_record_tab == 'MINI'"]
++[if exp="f.april_record_selected == 'mini_m12'"]
++[glink text=&f.march_record_list_mini_m12 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m12" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_mini_m12 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m12" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'mini_m13'"]
++[glink text=&f.march_record_list_mini_m13 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m13" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_mini_m13 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m13" name="archive_list_item"]
++[endif]
++[else]
++[if exp="f.april_record_cg_category == 'EVENT'"]
++[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
++[else]
++[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
++[endif]
++[if exp="f.april_record_cg_category == 'MINI'"]
++[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
++[else]
++[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
++[endif]
++[if exp="f.april_record_cg_category == 'MINI'"]
++[if exp="f.april_record_selected == 'mini_01'"]
++[glink text=&f.march_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'mini_02'"]
++[glink text=&f.march_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
++[endif]
++[else]
++[if exp="f.april_record_selected == 'event_01'"]
++[glink text=&f.march_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="282" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="282" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_02'"]
++[glink text=&f.march_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_03'"]
++[glink text=&f.march_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="366" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="366" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_04'"]
++[glink text=&f.march_record_list_cg_event_04 color="green" font_color="0x3B2A1B" x="78" y="408" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_04" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_04 color="green" font_color="0x3B2A1B" x="78" y="408" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_04" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_05'"]
++[glink text=&f.march_record_list_cg_event_05 color="green" font_color="0x3B2A1B" x="78" y="450" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_05" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_05 color="green" font_color="0x3B2A1B" x="78" y="450" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_05" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_06'"]
++[glink text=&f.march_record_list_cg_event_06 color="green" font_color="0x3B2A1B" x="78" y="492" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_06" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_06 color="green" font_color="0x3B2A1B" x="78" y="492" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_06" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_07'"]
++[glink text=&f.march_record_list_cg_event_07 color="green" font_color="0x3B2A1B" x="78" y="534" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_07" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_07 color="green" font_color="0x3B2A1B" x="78" y="534" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_07" name="archive_list_item"]
++[endif]
++[if exp="f.april_record_selected == 'event_08'"]
++[glink text=&f.march_record_list_cg_event_08 color="green" font_color="0x3B2A1B" x="78" y="576" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_08" name="archive_list_item archive_selected"]
++[else]
++[glink text=&f.march_record_list_cg_event_08 color="green" font_color="0x3B2A1B" x="78" y="576" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_08" name="archive_list_item"]
++[endif]
++[endif]
++[endif]
+ [elsif exp="f.april_record_month == '02'"]
+ [if exp="f.april_record_tab == 'CORE'"]
+ [if exp="f.april_record_selected == 'core_016'"]
+@@ -1996,7 +2349,7 @@
+ [endif]
+ [endif]
+ [endif]
+-[if exp="(f.april_record_month == '04' || f.april_record_month == '05' || f.april_record_month == '06' || f.april_record_month == '07' || f.april_record_month == '08' || f.april_record_month == '09' || f.april_record_month == '10' || f.april_record_month == '11' || f.april_record_month == '12' || f.april_record_month == '01' || f.april_record_month == '02') && f.april_record_tab == 'CG'"]
++[if exp="(f.april_record_month == '04' || f.april_record_month == '05' || f.april_record_month == '06' || f.april_record_month == '07' || f.april_record_month == '08' || f.april_record_month == '09' || f.april_record_month == '10' || f.april_record_month == '11' || f.april_record_month == '12' || f.april_record_month == '01' || f.april_record_month == '02' || f.april_record_month == '03') && f.april_record_tab == 'CG'"]
+ [if exp="f.april_record_locked == true"]
+ [ptext layer="1" name="archive_text" text="？？？" x="700" y="172" size="20" bold="true" color="0x305332" edge="" width="520"]
+ [ptext layer="1" name="archive_text" text="このページには、まだ表示できる内容がありません。" x="700" y="250" size="17" bold="true" color="0x3B2A1B" edge="" width="500"]
+@@ -2005,6 +2358,11 @@
+ [ptext layer="1" name="archive_text" text=&f.april_record_detail_meta x="700" y="209" size="13" bold="true" color="0x3B2A1B" edge="" width="520"]
+ [image layer="1" name="archive_cg_image" folder="bgimage" storage=&f.april_record_cg_file x="700" y="252" width="512" height="288" visible="true"]
+ [button storage="system_common.ks" target="*records_cg_expand" graphic=&f.april_record_cg_file folder="bgimage" x="700" y="252" width="512" height="288" fix="false" name="archive_cg_expand_button" hint="クリックで大きく表示"]
++[if exp="f.april_record_month == '03'"]
++[iscript]
++$(".archive_cg_image, .archive_cg_expand_button").css("object-fit", "contain");
++[endscript]
++[endif]
+ [if exp="f.april_record_month == '02'"]
+ [iscript]
+ $(".archive_cg_image, .archive_cg_expand_button").css("object-fit", "contain");
+@@ -2024,7 +2382,22 @@
+ [else]
+ [ptext layer="1" name="archive_text" text=&f.april_record_detail_title x="700" y="172" size="20" bold="true" color="0x305332" edge="" width="500"]
+ [ptext layer="1" name="archive_text" text=&f.april_record_detail_meta x="700" y="209" size="13" bold="true" color="0x3B2A1B" edge="" width="510"]
+-[if exp="f.april_record_is_february_bad == true"]
++[if exp="f.april_record_is_march == true"]
++[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[if exp="f.april_record_detail_comment != ''"]
++[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
++[endif]
++[elsif exp="f.april_record_is_february_bad == true"]
+ [ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+ [ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+ [ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+@@ -2269,6 +2642,11 @@
+ [endif]
+ [endif]
+ [endif]
++[if exp="window.MarchEnding.ENABLE_MARCH_ED_DEBUG_RESET === true"]
++[eval exp="f.march_debug_flag_text = 'true_bad_seen: ' + (sf.true_bad_seen === true ? 'ON' : 'OFF')"]
++[ptext layer="1" name="archive_text" text=&f.march_debug_flag_text x="78" y="630" size="11" bold="true" color="0x70551D" edge="" width="400"]
++[glink text="DEBUG｜1周目EDフラグ解除" color="green" font_color="0x3B2A1B" x="78" y="655" width="310" height="38" size="12" bold="true" target="*march_debug_reset_confirm" name="archive_action"]
++[endif]
+ [glink text="全記録リセット" color="green" font_color="0x3B2A1B" x="760" y="655" width="160" height="38" size="13" bold="true" target="*records_reset_all_confirm" name="archive_action"]
+ [glink text="【DEBUG】単月リセット" color="green" font_color="0x3B2A1B" x="930" y="655" width="180" height="38" size="12" bold="true" target="*records_reset_month_confirm" name="archive_action"]
+ [glink text="戻る" color="green" font_color="0xFFF8E4" x="1125" y="655" width="90" height="38" size="15" bold="true" target="*records_back" name="archive_action"]
+@@ -2280,6 +2658,11 @@
+ [cm]
+ [layermode name="cg_fullscreen_dim" color="0x000000" opacity="170" mode="normal" time="180" wait="true"]
+ [button storage="system_common.ks" target="*records_cg_fullscreen_close" graphic=&f.april_record_cg_file folder="bgimage" x="50" y="28" width="1180" height="664" fix="false" name="cg_fullscreen_image" hint="クリックで閉じる"]
++[if exp="f.april_record_month == '03'"]
++[iscript]
++$(".cg_fullscreen_image").css("object-fit", "contain");
++[endscript]
++[endif]
+ [if exp="f.april_record_month == '02'"]
+ [iscript]
+ $(".cg_fullscreen_image").css("object-fit", "contain");
+@@ -2322,7 +2705,7 @@
+ [iscript]
+ Object.keys(sf).forEach(function (key) {
+   /* Keep TyranoBuilder's cg_view/cg_id state objects intact; clear only this game's collected CG flags. */
+-  if (/^(core_bad_|mini_bad_|normal_ch\d+_clear$|cg_(april|may|june|july|august|september|october|november|december|january|february)_)/.test(key)) sf[key] = false;
++  if (/^(core_bad_|mini_bad_|normal_ch\d+_clear$|cg_(april|may|june|july|august|september|october|november|december|january|february|march)_|march_end_0[12]_seen$|true_end_seen$)/.test(key)) sf[key] = false;
+ });
+ [endscript]
+ [jump target="*records_display"]
+@@ -2380,7 +2763,9 @@
+   "02": [
+     "core_bad_016", "mini_bad_m10", "mini_bad_m11", "normal_ch02_clear",
+     "cg_february_event_01", "cg_february_event_02", "cg_february_event_03", "cg_february_mini_01", "cg_february_mini_02"
+-  ]
++  ],
++  "03": ["core_bad_017", "mini_bad_m12", "mini_bad_m13", "normal_ch03_clear", "march_end_01_seen", "march_end_02_seen", "true_end_seen", "cg_march_event_01", "cg_march_event_02", "cg_march_event_03", "cg_march_event_04", "cg_march_event_05", "cg_march_event_06", "cg_march_event_07", "cg_march_event_08", "cg_march_mini_01", "cg_march_mini_02"]
++
+ };
+ var selectedMonthKeys = monthlyRecordKeys[f.april_record_month] || [];
+ selectedMonthKeys.forEach(function (key) { sf[key] = false; });
+@@ -2408,6 +2793,8 @@
+ [else]
+ [jump target="*show_mini_bad"]
+ [endif]
++[elsif exp="f.april_records_return == 'march_end'"]
++[jump storage="n03_march.ks" target="*march_ending_menu"]
+ [elsif exp="f.april_records_return == 'clear'"]
+ [if exp="f.current_clear_month == '02'"]
+ [jump storage="n02_february.ks" target="*february_clear_menu"]
+@@ -2464,3 +2851,28 @@
+ 
+ 
+ 
++
++*records_from_march_end
++[clearstack stack="if"]
++[eval exp="f.april_record_screen_open = false; f.april_records_return = 'march_end'; f.april_record_month = '03'; f.april_record_tab = 'CORE'; f.april_record_selected = f.current_march_end || 'core_017'"]
++[jump target="*records_display"]
++
++; Development-only: this deliberately preserves CORE017/CGs/TRUE/saves and all other sf.
++*march_debug_reset_confirm
++[clearstack stack="if"]
++[if exp="window.MarchEnding.ENABLE_MARCH_ED_DEBUG_RESET !== true"]
++[jump target="*records_display"]
++[endif]
++[cm]
++[free layer="1" name="archive_text"]
++[ptext layer="1" name="archive_text" text="1周目ED到達フラグだけを解除します。失敗の記録・CG・セーブデータは削除しません。続けますか？" x="150" y="270" size="22" bold="true" color="0x3B2A1B" edge="" width="980"]
++[glink text="解除する" color="green" font_color="0x3B2A1B" x="350" y="365" width="260" height="60" size="20" bold="true" target="*march_debug_reset_apply" name="archive_action"]
++[glink text="キャンセル" color="green" font_color="0x3B2A1B" x="670" y="365" width="240" height="60" size="20" bold="true" target="*records_display" name="archive_action"]
++[s]
++
++*march_debug_reset_apply
++[clearstack stack="if"]
++[iscript]
++window.MarchEnding.resetFirstEndingFlag();
++[endscript]
++[jump target="*records_display"]
+--- a/data/scenario/title_screen.ks
++++ b/data/scenario/title_screen.ks
+@@ -17,6 +17,12 @@
+ [s]
+ 
+ *title
++[if exp="!window.MarchEnding"]
++[loadjs storage="march_ending.js"]
++[endif]
++[iscript]
++window.MarchEnding.cleanup();
++[endscript]
+ [if exp="f.circle_logo_seen != true"]
+ [eval exp="f.circle_logo_seen = true"]
+ [jump target="*circle_intro"]
+@@ -68,10 +74,15 @@
+         tag && tag.name === "glink" && tag.pm && tag.pm.text === "2月へ" &&
+         document.body.innerText.indexOf("1月 CLEAR『点数の外にある、おいしい』") >= 0 &&
+         document.body.innerText.indexOf("2月へ") < 0;
+-      if (oldClearMenu || oldSeptemberMenu || oldOctoberMenu || oldNovemberMenu || oldDecemberMenu || oldJanuaryMenu) {
++      var oldFebruaryMenu = kag.stat.current_scenario === "n02_february.ks" &&
++        kag.stat.f && kag.stat.f.current_clear_month === "02" &&
++        tag && tag.name === "glink" && tag.pm && tag.pm.text === "3月へ" &&
++        document.body.innerText.indexOf("2月 CLEAR『その日まで、ふたりで』") >= 0 &&
++        document.body.innerText.indexOf("3月へ") < 0;
++      if (oldClearMenu || oldSeptemberMenu || oldOctoberMenu || oldNovemberMenu || oldDecemberMenu || oldJanuaryMenu || oldFebruaryMenu) {
+         kag.ftag.startTag("jump", {
+-          storage: oldJanuaryMenu ? "n01_january.ks" : (oldDecemberMenu ? "n12_december.ks" : (oldNovemberMenu ? "n11_november.ks" : (oldOctoberMenu ? "n10_october.ks" : (oldSeptemberMenu ? "n09_september.ks" : "n08_august.ks")))),
+-          target: oldJanuaryMenu ? "*january_clear_menu" : (oldDecemberMenu ? "*december_clear_menu" : (oldNovemberMenu ? "*november_clear_menu" : (oldOctoberMenu ? "*october_clear_menu" : (oldSeptemberMenu ? "*september_clear_menu" : "*august_clear_menu"))))
++          storage: oldFebruaryMenu ? "n02_february.ks" : (oldJanuaryMenu ? "n01_january.ks" : (oldDecemberMenu ? "n12_december.ks" : (oldNovemberMenu ? "n11_november.ks" : (oldOctoberMenu ? "n10_october.ks" : (oldSeptemberMenu ? "n09_september.ks" : "n08_august.ks"))))),
++          target: oldFebruaryMenu ? "*february_clear_menu" : (oldJanuaryMenu ? "*january_clear_menu" : (oldDecemberMenu ? "*december_clear_menu" : (oldNovemberMenu ? "*november_clear_menu" : (oldOctoberMenu ? "*october_clear_menu" : (oldSeptemberMenu ? "*september_clear_menu" : "*august_clear_menu")))))
+         });
+       } else if (checks < 20) {
+         setTimeout(repairOldAugustMenu, 150);
+@@ -99,6 +110,9 @@
+ [glink color="black" text="" graphic="april_ui/v4/title/records_matched_normal.svg" enterimg="april_ui/v4/title/records_matched_hover.svg" x="95" y="424" width="300" height="84" target="*title_records" name="april_title_button"]
+ [glink color="black" text="" graphic="april_ui/v3/title/title_config_normal.png" enterimg="april_ui/v3/title/title_config_hover.png" x="95" y="516" width="300" height="84" target="*title_config" name="april_title_button"]
+ [glink color="black" text="" graphic="april_ui/v3/title/title_exit_normal.png" enterimg="april_ui/v3/title/title_exit_hover.png" x="95" y="608" width="300" height="84" target="*title_exit" name="april_title_button"]
++[if exp="sf.true_bad_seen === true"]
++[glink text="" color="black" x="700" y="565" width="470" height="132" target="*march_restart" graphic="april_ui/v5/title/title_retry_normal.svg" enterimg="april_ui/v5/title/title_retry_hover.svg" name="april_title_button"]
++[endif]
+ [xchgbgm storage="01_The_First_Day_of_365.mp3" time="1000"]
+ [s]
+ 
+@@ -136,3 +150,10 @@
+ [showload]
+ [jump target="*title"]
+ [s]
++
++*march_restart
++[clearstack stack="if"]
++[if exp="sf.true_bad_seen !== true"]
++[jump target="*title"]
++[endif]
++[jump target="*start"]
+--- a/data/scenario/system/future_character_define.ks
++++ b/data/scenario/system/future_character_define.ks
+@@ -27,6 +27,8 @@
+ [if exp="!TYRANO.kag.stat.charas['久世玲']"]
+ [chara_new name="久世玲" jname="久世玲" storage="kuze_rei_normal.png" width="440" height="660"]
+ [endif]
++; Refresh the default alias even for characters restored from older saves.
++[chara_face name="久世玲" face="default" storage="kuze_rei_normal.png"]
+ [chara_face name="久世玲" face="normal" storage="kuze_rei_normal.png"]
+ [chara_face name="久世玲" face="alt" storage="kuze_rei_soft.png"]
+ [chara_face name="久世玲" face="september_normal" storage="kuze_rei_normal.png"]

@@ -1,0 +1,59 @@
+{
+  "data/bgm/16_Recipe_for_Day_366.mp3": {
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0"
+      },
+      {
+        "codec_name": "mjpeg",
+        "codec_type": "video",
+        "width": 360,
+        "height": 360,
+        "r_frame_rate": "90000/1"
+      }
+    ],
+    "format": {
+      "duration": "273.200000"
+    }
+  },
+  "data/bgm/15_The_Real_Patissier.mp3": {
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0"
+      },
+      {
+        "codec_name": "mjpeg",
+        "codec_type": "video",
+        "width": 360,
+        "height": 360,
+        "r_frame_rate": "90000/1"
+      }
+    ],
+    "format": {
+      "duration": "202.480000"
+    }
+  },
+  "data/video/march_first_ending.mp4": {
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1280,
+        "height": 720,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "format": {
+      "duration": "227.133333"
+    }
+  }
+}

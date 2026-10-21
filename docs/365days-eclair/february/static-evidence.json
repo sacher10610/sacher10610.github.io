@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-16",
+  "mode": "source checks, isolated JavaScript and source-state simulation; no application operations",
+  "jsChecks": 678,
+  "references": 513,
+  "dialogues": 457,
+  "recordRegressionStates": 160,
+  "results": [
+    "Static PASS: 17 scenarios, 678 JavaScript checks, 513 file references.",
+    "Original six PNG hashes/dimensions PASS; adopted SD14_02 blank-label gifts version preserved. Four existing audio hashes matched at baseline; no new audio copies.",
+    "457 exact dialogue pages (Markdown emphasis retained as bold, not literal stars), exact choices, three BAD/retry paths, five CG skip stops, CG14_03 after identity reveal, scene07 month-end BGM, unchanged January CG02 timing PASS.",
+    "Record VM PASS: four records/five CGs masked/unlocked, exact texts, 160 earlier-month states unchanged, monthly/all reset.",
+    "Legacy August–January CLEAR repair callbacks PASS in isolated JS; actual SAVE/LOAD remains untested.",
+    "Source-state simulation PASS: direct correct route, all three first/known BADs, repeated retries, normal/month-end music state, CG cleanup, bells before SHOW/HIDE, guest separation, runtime registration guards. This is not an engine preview."
+  ],
+  "errors": []
+}

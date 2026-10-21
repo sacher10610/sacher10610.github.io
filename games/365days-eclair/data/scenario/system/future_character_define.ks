@@ -27,6 +27,8 @@
 [if exp="!TYRANO.kag.stat.charas['久世玲']"]
 [chara_new name="久世玲" jname="久世玲" storage="kuze_rei_normal.png" width="440" height="660"]
 [endif]
+; Refresh the default alias even for characters restored from older saves.
+[chara_face name="久世玲" face="default" storage="kuze_rei_normal.png"]
 [chara_face name="久世玲" face="normal" storage="kuze_rei_normal.png"]
 [chara_face name="久世玲" face="alt" storage="kuze_rei_soft.png"]
 [chara_face name="久世玲" face="september_normal" storage="kuze_rei_normal.png"]

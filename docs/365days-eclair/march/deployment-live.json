@@ -1,0 +1,147 @@
+{
+  "project": "live",
+  "files": [
+    {
+      "relative": "data/others/march_ending.js",
+      "sha256": "14173ed8f5fd04e31d70f1097c7f104d6dc052059f21679eb366343397d6b227",
+      "bytes": 16396
+    },
+    {
+      "relative": "data/scenario/n02_february.ks",
+      "sha256": "28a7cf96305d4e90671d51215b8922d0bd4bd8443cd753eb4a48f3bf413e9949",
+      "bytes": 50154
+    },
+    {
+      "relative": "data/scenario/n03_march.ks",
+      "sha256": "962a794107982782c156456808221d77dfd13ab438c7563c0569f7d99b0d842d",
+      "bytes": 73222
+    },
+    {
+      "relative": "data/scenario/n04_april.ks",
+      "sha256": "56349196f3c19b5cb37bd31c57bf619a0147338c3592823b2a143647994b9dbd",
+      "bytes": 37406
+    },
+    {
+      "relative": "data/scenario/system_common.ks",
+      "sha256": "a8020ea9e7bbe3ab54b1508776d857fe25845fa6353ede54782996af88f83ab8",
+      "bytes": 232346
+    },
+    {
+      "relative": "data/scenario/title_screen.ks",
+      "sha256": "e3ffdb5f50373b6f10a5abb897b7dec47236ab95b8d5391d8eb530a7e9c0fafa",
+      "bytes": 7872
+    },
+    {
+      "relative": "data/image/april_ui/v5/title/title_retry_hover.svg",
+      "sha256": "1e0a01a0aa06d9e6d02306523804f6d6168fcd29a7d176ba29ba69469c15c5f7",
+      "bytes": 2262
+    },
+    {
+      "relative": "data/image/april_ui/v5/title/title_retry_normal.svg",
+      "sha256": "b5dfa6f2444ebb8e1924a57f100e16ab2b76831e17f91a56a191af8ea6108b7f",
+      "bytes": 2262
+    },
+    {
+      "relative": "data/bgm/16_Recipe_for_Day_366.mp3",
+      "sha256": "99e517463b06d038063ec479febafacee10165621bae6a2323123ee0918673d8",
+      "bytes": 6187778
+    },
+    {
+      "relative": "data/bgm/15_The_Real_Patissier.mp3",
+      "sha256": "0af86e390ac880e190f8e429b3c8b0b7cb49049a1423f6228d1ef06c85f22f85",
+      "bytes": 4713987
+    },
+    {
+      "relative": "data/bgimage/BG15_01_At_the_Worlds_Door.png",
+      "sha256": "8ec4e323ff68b9b66562ce2dd16e25fa228327a2ec220f52a3d79110991a8d18",
+      "bytes": 2282556
+    },
+    {
+      "relative": "data/bgimage/BG15_02_Before_the_Finals.png",
+      "sha256": "d5861d9b5ace4028486af3dece5a96681bd1835ef70a5927fb3f0b352adc8065",
+      "bytes": 2487357
+    },
+    {
+      "relative": "data/bgimage/BG15_03_World_Eclair_Grand_Prix.png",
+      "sha256": "9f678eb4ac83b4320d0af207f10b11ab10b060b60f073d6fc7b0b8073e734a80",
+      "bytes": 2434831
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_01_Across_the_Same_Stage.png",
+      "sha256": "124ac7dfb23a0337562c1c8701c99b0ec4224b1103c9bb5be0d5b1e1e4fbebb1",
+      "bytes": 3277291
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_02_The_Real_Patissier.png",
+      "sha256": "990c079a50b53659ef2c9190ca3894ee722055e087f6985dfd5aabdb24fe6f8c",
+      "bytes": 3415862
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_03_One_Bite_One_World.png",
+      "sha256": "ac2f5634a9e7e256c153e758929c8eaeaa40532b625cdae9df7b30cda5ec4ad0",
+      "bytes": 3173272
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_04_The_Worlds_Best_Eclair.png",
+      "sha256": "c2e1da1fe8c1b8ae68057905703a74bc4f70ed7ed2770bffe1f0b97cefac3a5e",
+      "bytes": 3054950
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_05_One_Last_Look.png",
+      "sha256": "b9242894d470bfbad54d601b091929b9f47383431e2170889098f24f00632f62",
+      "bytes": 3004294
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_06_The_Promise_Left_Unspoken.png",
+      "sha256": "8a90c834ca2387765f83978b27f4e5459f7fecbeffd1afe2c8308cdf7a502f95",
+      "bytes": 3174071
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_07_By_Your_Name.png",
+      "sha256": "371f91f3af29c70a650e1a3a8e78355e64f9239dcb2cd7f5eea4ad1c2181bfb5",
+      "bytes": 3073940
+    },
+    {
+      "relative": "data/bgimage/cg/march/CG15_08_The_Day_After.png",
+      "sha256": "d460b5a915900da81056458e706c65483524f459ad17d4f7c67ee752ecb38d23",
+      "bytes": 3073710
+    },
+    {
+      "relative": "data/bgimage/cg/march/SD15_01_MiniBad012_Three_Hour_Speech.png",
+      "sha256": "969a8f7ef18b165dc2e831bee12da6a312cb159b488330b26ae87450986944f9",
+      "bytes": 2756757
+    },
+    {
+      "relative": "data/bgimage/cg/march/SD15_02_MiniBad013_Print_First.png",
+      "sha256": "b17030a35d3ac30c4cb3a987f972b8a09dfcd97dd521cd0c10862843ca8d301c",
+      "bytes": 2729468
+    },
+    {
+      "relative": "data/bgimage/eyecatch/EYECATCH_02_03_MARCH.png",
+      "sha256": "fc161cfb2a388d73d2fcdf9ea6108e83eb8a25e3521d437295ba5f6a813f59ae",
+      "bytes": 1296336
+    },
+    {
+      "relative": "data/image/ending/ENDCARD_TRUE_01_FIN.png",
+      "sha256": "208f00d7a783bc70d7711f35eed726660885ec27b9db4fed9d837d79c0eb674d",
+      "bytes": 507943
+    },
+    {
+      "relative": "data/video/march_first_ending.mp4",
+      "sha256": "48c65d477b6132dfc13047c87ddc03022d7f74c5a362087e31ed30dc43d20c18",
+      "bytes": 28583059
+    },
+    {
+      "relative": "APRIL_EXISTING_VARIABLE_MAP.md",
+      "sha256": "00a646f2f9880ece6ceb48c3d4f9a4c1ab269ce96bc1606949c758b80972dcd1",
+      "bytes": 19849
+    },
+    {
+      "relative": "data/scenario/system/future_character_define.ks",
+      "sha256": "f54c25eba163eb67573d010226ec5e31cfe4e57ce6d0cf904eae152a8b0bd1b0",
+      "bytes": 2518
+    }
+  ],
+  "protected_baseline_files": 35,
+  "verified": true
+}

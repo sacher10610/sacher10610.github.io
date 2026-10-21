@@ -87,7 +87,9 @@ MINI BAD [emb exp="f.april_bad.id.toUpperCase()"]
 [resetfont]
 [r]
 『[emb exp="f.april_bad.title"]』[r]
+[if exp="f.april_bad.month != '01' && f.april_bad.month != '02' && f.april_bad.month != '03'"]
 失敗の記録に登録しました。[r]
+[endif]
 [emb exp="f.april_bad.lesson"]
 [glink text="選択肢から再挑戦" color="green" font_color="0x3B2A1B" x="675" y="245" width="400" height="85" size="23" bold="true" target="*retry_bad" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
 [glink text="記録" color="green" font_color="0x3B2A1B" x="675" y="350" width="400" height="85" size="23" bold="true" target="*records_from_bad" graphic="april_ui/v2/choices/choice_normal.png" enterimg="april_ui/v2/choices/choice_hover.png" name="april_action"]
@@ -122,7 +124,7 @@ if (f.april_bad && f.april_bad.kind === "MINI") {
 } else {
  f.april_record_tab = "CORE";
  var badId = String((f.april_bad && f.april_bad.id) || "001");
- f.april_record_selected = /^00[1-9]$/.test(badId) ? "core_" + badId : "core_001";
+ f.april_record_selected = /^(?:00[1-9]|01[0-7])$/.test(badId) ? "core_" + badId : "core_001";
 }
 [endscript]
 [jump target="*records_display"]
@@ -134,19 +136,19 @@ if (f.april_bad && f.april_bad.kind === "MINI") {
 [iscript]
 f.april_record_month = f.current_clear_month || "04";
 f.april_record_tab = "CORE";
-f.april_record_selected = f.april_record_month === "09" ? "september_clear" : (f.april_record_month === "08" ? "august_clear" : (f.april_record_month === "07" ? "july_clear" : (f.april_record_month === "06" ? "june_clear" : (f.april_record_month === "05" ? "may_clear" : "clear"))));
+f.april_record_selected = f.april_record_month === "03" ? "march_clear" : (f.april_record_month === "02" ? "february_clear" : (f.april_record_month === "01" ? "january_clear" : (f.april_record_month === "12" ? "december_clear" : (f.april_record_month === "11" ? "november_clear" : (f.april_record_month === "10" ? "october_clear" : (f.april_record_month === "09" ? "september_clear" : (f.april_record_month === "08" ? "august_clear" : (f.april_record_month === "07" ? "july_clear" : (f.april_record_month === "06" ? "june_clear" : (f.april_record_month === "05" ? "may_clear" : "clear"))))))))));
 [endscript]
 [jump target="*records_display"]
 
 *records_tab_core
 [clearstack stack="if"]
 [eval exp="f.april_record_tab = 'CORE'"]
-[eval exp="f.april_record_selected = (f.april_record_month == '09' ? 'core_009' : (f.april_record_month == '08' ? 'core_008' : (f.april_record_month == '07' ? 'core_007' : (f.april_record_month == '06' ? 'core_005' : (f.april_record_month == '05' ? 'core_003' : 'core_001')))))"]
+[eval exp="f.april_record_selected = f.april_record_month == '03' ? 'core_017' : (f.april_record_month == '02' ? 'core_016' : (f.april_record_month == '01' ? 'core_015' : (f.april_record_month == '12' ? 'core_014' : (f.april_record_month == '11' ? 'core_012' : (f.april_record_month == '10' ? 'core_010' : ((f.april_record_month == '09' ? 'core_009' : (f.april_record_month == '08' ? 'core_008' : (f.april_record_month == '07' ? 'core_007' : (f.april_record_month == '06' ? 'core_005' : (f.april_record_month == '05' ? 'core_003' : 'core_001')))))))))))"]
 [jump target="*records_display"]
 *records_tab_mini
 [clearstack stack="if"]
 [eval exp="f.april_record_tab = 'MINI'"]
-[eval exp="f.april_record_selected = (f.april_record_month == '09' ? 'september_mini_none' : (f.april_record_month == '08' ? 'august_mini_none' : (f.april_record_month == '07' ? 'july_mini_none' : (f.april_record_month == '06' ? 'june_mini_none' : (f.april_record_month == '05' ? 'may_mini_none' : 'mini_m01')))))"]
+[eval exp="f.april_record_selected = f.april_record_month == '03' ? 'mini_m12' : (f.april_record_month == '02' ? 'mini_m10' : (f.april_record_month == '01' ? 'mini_m08' : (f.april_record_month == '12' ? 'mini_m06' : (f.april_record_month == '11' ? 'mini_m04' : (f.april_record_month == '10' ? 'october_mini_none' : ((f.april_record_month == '09' ? 'september_mini_none' : (f.april_record_month == '08' ? 'august_mini_none' : (f.april_record_month == '07' ? 'july_mini_none' : (f.april_record_month == '06' ? 'june_mini_none' : (f.april_record_month == '05' ? 'may_mini_none' : 'mini_m01')))))))))))"]
 [jump target="*records_display"]
 *records_tab_cg
 [clearstack stack="if"]
@@ -207,8 +209,8 @@ f.april_record_selected = f.april_record_month === "09" ? "september_clear" : (f
 *records_month_selection
 [clearstack stack="if"]
 [iscript]
-if (f.april_record_tab === "CORE") f.april_record_selected = f.april_record_month === "09" ? "core_009" : (f.april_record_month === "08" ? "core_008" : (f.april_record_month === "07" ? "core_007" : (f.april_record_month === "06" ? "core_005" : (f.april_record_month === "05" ? "core_003" : "core_001"))));
-else if (f.april_record_tab === "MINI") f.april_record_selected = f.april_record_month === "09" ? "september_mini_none" : (f.april_record_month === "08" ? "august_mini_none" : (f.april_record_month === "07" ? "july_mini_none" : (f.april_record_month === "06" ? "june_mini_none" : (f.april_record_month === "05" ? "may_mini_none" : "mini_m01"))));
+if (f.april_record_tab === "CORE") f.april_record_selected = f.april_record_month === "03" ? "core_017" : (f.april_record_month === "02" ? "core_016" : (f.april_record_month === "01" ? "core_015" : (f.april_record_month === "12" ? "core_014" : (f.april_record_month === "11" ? "core_012" : (f.april_record_month === "10" ? "core_010" : (f.april_record_month === "09" ? "core_009" : (f.april_record_month === "08" ? "core_008" : (f.april_record_month === "07" ? "core_007" : (f.april_record_month === "06" ? "core_005" : (f.april_record_month === "05" ? "core_003" : "core_001"))))))))));
+else if (f.april_record_tab === "MINI") f.april_record_selected = f.april_record_month === "03" ? "mini_m12" : (f.april_record_month === "02" ? "mini_m10" : (f.april_record_month === "01" ? "mini_m08" : (f.april_record_month === "12" ? "mini_m06" : (f.april_record_month === "11" ? "mini_m04" : (f.april_record_month === "10" ? "october_mini_none" : (f.april_record_month === "09" ? "september_mini_none" : (f.april_record_month === "08" ? "august_mini_none" : (f.april_record_month === "07" ? "july_mini_none" : (f.april_record_month === "06" ? "june_mini_none" : (f.april_record_month === "05" ? "may_mini_none" : "mini_m01"))))))))));
 else f.april_record_selected = f.april_record_cg_category === "MINI" ? "mini_01" : "event_01";
 [endscript]
 [jump target="*records_display"]
@@ -237,6 +239,166 @@ else f.april_record_selected = f.april_record_cg_category === "MINI" ? "mini_01"
 [clearstack stack="if"]
 [eval exp="f.april_record_selected = 'core_006'"]
 [jump target="*records_display"]
+*records_select_core_017
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_017'"]
+[jump target="*records_display"]
+
+*records_select_march_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'march_clear'"]
+[jump target="*records_display"]
+
+*records_select_march_end_01
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'march_end_01'"]
+[jump target="*records_display"]
+
+*records_select_march_end_02
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'march_end_02'"]
+[jump target="*records_display"]
+
+*records_select_march_true
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'march_true'"]
+[jump target="*records_display"]
+
+*records_select_mini_m12
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m12'"]
+[jump target="*records_display"]
+
+*records_select_mini_m13
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m13'"]
+[jump target="*records_display"]
+
+*records_select_cg_event_04
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'event_04'"]
+[jump target="*records_display"]
+
+*records_select_cg_event_05
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'event_05'"]
+[jump target="*records_display"]
+
+*records_select_cg_event_06
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'event_06'"]
+[jump target="*records_display"]
+
+*records_select_cg_event_07
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'event_07'"]
+[jump target="*records_display"]
+
+*records_select_cg_event_08
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'event_08'"]
+[jump target="*records_display"]
+
+*records_select_core_016
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_016'"]
+[jump target="*records_display"]
+
+*records_select_mini_m10
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m10'"]
+[jump target="*records_display"]
+
+*records_select_mini_m11
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m11'"]
+[jump target="*records_display"]
+
+*records_select_february_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'february_clear'"]
+[jump target="*records_display"]
+
+*records_select_core_015
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_015'"]
+[jump target="*records_display"]
+
+*records_select_mini_m08
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m08'"]
+[jump target="*records_display"]
+
+*records_select_mini_m09
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m09'"]
+[jump target="*records_display"]
+
+*records_select_january_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'january_clear'"]
+[jump target="*records_display"]
+
+*records_select_core_014
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_014'"]
+[jump target="*records_display"]
+
+*records_select_mini_m06
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m06'"]
+[jump target="*records_display"]
+
+*records_select_mini_m07
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m07'"]
+[jump target="*records_display"]
+
+*records_select_december_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'december_clear'"]
+[jump target="*records_display"]
+
+*records_select_core_012
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_012'"]
+[jump target="*records_display"]
+
+*records_select_core_013
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_013'"]
+[jump target="*records_display"]
+
+*records_select_mini_m04
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m04'"]
+[jump target="*records_display"]
+
+*records_select_mini_m05
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'mini_m05'"]
+[jump target="*records_display"]
+
+*records_select_november_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'november_clear'"]
+[jump target="*records_display"]
+
+*records_select_core_010
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_010'"]
+[jump target="*records_display"]
+
+*records_select_core_011
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'core_011'"]
+[jump target="*records_display"]
+
+*records_select_october_clear
+[clearstack stack="if"]
+[eval exp="f.april_record_selected = 'october_clear'"]
+[jump target="*records_display"]
+
 *records_select_core_009
 [clearstack stack="if"]
 [eval exp="f.april_record_selected = 'core_009'"]
@@ -325,6 +487,9 @@ else f.april_record_selected = f.april_record_cg_category === "MINI" ? "mini_01"
 [eval exp="f.april_record_selected = 'mini_03'"]
 [jump target="*records_display"]
 *records_display
+[if exp="!window.MarchEnding"]
+[loadjs storage="march_ending.js"]
+[endif]
 [clearstack stack="if"]
 [free layer="1" name="archive_cg_image"]
 [if exp="f.april_record_screen_open == true"]
@@ -447,6 +612,388 @@ var augustArchiveMap = {
  core_008:{title:"BAD008｜一夜の世界一",classification:"CORE BAD",status:(sf.core_bad_008===true?"回収済み":""),condition1:"CHOICE 01『今夜だけの“超限定”で、一気に数字を取りにいこう』",body1:"一晩だけ、数字は跳ね上がった。",body2:"行列ができ、売り切れて、",body3:"急上昇の一番上にも名前が載った。",body4:"でも翌朝、店には次へつながるものが",body5:"ほとんど残っていなかった。",body6:"一度だけ一番になることと、世界一であり続けることは違う。",comment:"一位のスクショだけ残っても、",comment2:"明日の店は開けなあかんねんな……",note:""},
  august_clear:{title:"8月 CLEAR『バズった次の日』",classification:"CLEAR",status:(sf.normal_ch08_clear===true?"達成済み":""),condition1:"8月の物語を最後まで進める。",body1:"大きな数字が悪いわけではない。",body2:"一晩でたくさんの人に届くことも、",body3:"店にとっては大きなチャンスだった。",body4:"でも本当に残したかったのは、一位の画面ではなく、",body5:"次の日にも店を開けられること。また買えること。",body6:"また来たいと思ってもらうこと。",body7:"八月に覚えたのは、バズの“その次”を作ることだった。",comment:"一晩だけやなくて、次の日も続いてたら、",comment2:"もっと強いやんな",note:""}
 };
+var marchArchiveMap = {
+ "core_017": {
+  "title": "真・BAD END 017『約束どおり』",
+  "classification": "CORE BAD",
+  "flag": "core_bad_017",
+  "condition1": "",
+  "raw_body": "一年かけて、世界一の抹茶エクレアを作った。女神との約束も守った。抹茶ちゃんは帰ることができた。けれど「三月が終わったら話す」という約束だけは、果たされなかった。帰る道があることと、本人が帰りたいことは同じではない。",
+  "raw_comment": "「……あんたに、聞いてほしいことがあってん」",
+  "body1": "一年かけて、世界一の抹茶エクレアを作った。女神との約束も守った。抹",
+  "body2": "茶ちゃんは帰ることができた。けれど「三月が終わったら話す」という約",
+  "body3": "束だけは、果たされなかった。帰る道があることと、本人が帰りたいこと",
+  "body4": "は同じではない。",
+  "comment": "「……あんたに、聞いてほしいことがあってん」",
+  "comment2": ""
+ },
+ "mini_m12": {
+  "title": "M12｜優勝スピーチ三時間",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m12",
+  "condition1": "",
+  "raw_body": "優勝後の挨拶を練習したら、一年の思い出を語りきれず三時間。肝心の出品準備が止まってしまった。",
+  "raw_comment": "「思い出、いっぱいやな……でも大会前に話しきるもんちゃうわ！」",
+  "body1": "優勝後の挨拶を練習したら、一年の思い出を語りきれず三時間。肝心の出",
+  "body2": "品準備が止まってしまった。",
+  "comment": "「思い出、いっぱいやな……でも大会前に話しきるもんちゃうわ！」",
+  "comment2": ""
+ },
+ "mini_m13": {
+  "title": "M13｜世界一、先に印刷",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m13",
+  "condition1": "",
+  "raw_body": "優勝後の帯紙を大量に刷った。でも、まだ世界一とは決まっていない。先に必要なのは、称号ではなく出品する一個だった。",
+  "raw_comment": "「世界一って、印刷したらなれるもんちゃうな……」",
+  "body1": "優勝後の帯紙を大量に刷った。でも、まだ世界一とは決まっていない。先",
+  "body2": "に必要なのは、称号ではなく出品する一個だった。",
+  "comment": "「世界一って、印刷したらなれるもんちゃうな……」",
+  "comment2": ""
+ },
+ "march_end_01": {
+  "title": "END『帰るべき場所』",
+  "classification": "通常END",
+  "flag": "march_end_01_seen",
+  "condition1": "",
+  "raw_body": "心配するあまり、帰る方が幸せだと結論を伝えた。相手の未来を思ったことは本当でも、その未来を自分が決めてしまった。",
+  "raw_comment": "",
+  "body1": "心配するあまり、帰る方が幸せだと結論を伝えた。相手の未来を思ったこ",
+  "body2": "とは本当でも、その未来を自分が決めてしまった。",
+  "comment": "",
+  "comment2": ""
+ },
+ "march_end_02": {
+  "title": "END『あなたの答え』",
+  "classification": "通常END",
+  "flag": "march_end_02_seen",
+  "condition1": "",
+  "raw_body": "一緒にいたいという願いは、素直に伝えられた。けれど今度も、抹茶ちゃん自身がどうしたいかを最後まで聞けなかった。",
+  "raw_comment": "",
+  "body1": "一緒にいたいという願いは、素直に伝えられた。けれど今度も、抹茶ちゃ",
+  "body2": "ん自身がどうしたいかを最後まで聞けなかった。",
+  "comment": "",
+  "comment2": ""
+ },
+ "march_true": {
+  "title": "TRUE END『世界一の、その次の日』",
+  "classification": "TRUE END",
+  "flag": "true_end_seen",
+  "condition1": "",
+  "raw_body": "世界一になるという約束を果たした。帰れる道もある。それでも、これからをどう生きるかは本人が決める。相手の答えを勝手に決めず、聞いて、一緒に次の日を迎えた。",
+  "raw_comment": "「世界一になった次の日も、そのまた次の日も。ウチら、また作れるんやな」",
+  "body1": "世界一になるという約束を果たした。帰れる道もある。それでも、これか",
+  "body2": "らをどう生きるかは本人が決める。相手の答えを勝手に決めず、聞いて、",
+  "body3": "一緒に次の日を迎えた。",
+  "comment": "「世界一になった次の日も、そのまた次の日も。ウチら、また作れるんや",
+  "comment2": "な」"
+ },
+ "march_clear": {
+  "title": "3月 CLEAR｜世界一の抹茶エクレア",
+  "classification": "月間クリア",
+  "flag": "normal_ch03_clear",
+  "condition1": "",
+  "raw_body": "World Éclair Grand Prix、総合第1位は……Pâtisserie Komorebi。Matcha Éclair!",
+  "raw_comment": "",
+  "body1": "World Éclair Grand Prix、総合第1位は……",
+  "body2": "Pâtisserie Komorebi。Matcha Éclair!",
+  "comment": "",
+  "comment2": ""
+ }
+};
+Object.keys(marchArchiveMap).forEach(function (key) {
+ var item = marchArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "march_clear" ? "達成済み" : "回収済み") : "";
+ f["march_record_list_"+key] = item.status ? item.title : "？？？";
+});
+var februaryArchiveMap = {
+ "core_016": {
+  "title": "BAD016｜帰還最優先",
+  "classification": "CORE BAD",
+  "flag": "core_bad_016",
+  "condition1": "CHOICE 01 A「帰れるように、こちらで段取りを全部決めよう」",
+  "raw_body": "抹茶ちゃんのために、帰還の段取りを一人で整えようとした。けれど、帰還は本人が選べる権利であって、主人公が決める予定ではなかった。手続きや引き継ぎを急ぐうちに、二人で目指していた機会まで逃した。相手を大切にするつもりで、相手の声を後回しにしてしまった。",
+  "raw_comment": "「助けようとしてくれたんは分かる。でも、ウチのことはウチにも聞いてほしかった……」",
+  "body1": "抹茶ちゃんのために、帰還の段取りを一人で整えようとした。けれど、帰",
+  "body2": "還は本人が選べる権利であって、主人公が決める予定ではなかった。手続",
+  "body3": "きや引き継ぎを急ぐうちに、二人で目指していた機会まで逃した。相手を",
+  "body4": "大切にするつもりで、相手の声を後回しにしてしまった。",
+  "comment": "「助けようとしてくれたんは分かる。でも、ウチのことはウチにも聞いて",
+  "comment2": "ほしかった……」"
+ },
+ "mini_m10": {
+  "title": "M10｜厨房まるごと荷造り",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m10",
+  "condition1": "CHOICE 00 A「必要そうなものを、全部箱に詰めておこう」",
+  "raw_body": "将来のためと、厨房の道具まで全部箱に詰めた。結果、今日の仕込みに使う道具が見つからず、最初から全部開け直すことになった。",
+  "raw_comment": "「先のこと考えるんもええけど、今日のエクレア作れへんかったらあかんやろ！」",
+  "body1": "将来のためと、厨房の道具まで全部箱に詰めた。結果、今日の仕込みに使",
+  "body2": "う道具が見つからず、最初から全部開け直すことになった。",
+  "comment": "「先のこと考えるんもええけど、今日のエクレア作れへんかったらあかん",
+  "comment2": "やろ！」"
+ },
+ "mini_m11": {
+  "title": "M11｜お土産、誰の分？",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m11",
+  "condition1": "CHOICE 00 B「帰る時のお土産を、先にたくさん用意しよう」",
+  "raw_body": "帰還時のお土産を張り切って用意した。けれど、誰に何個渡すのか、相手が抹茶を好きなのかも確かめていない。大事なことを聞く前に、箱だけが増えていた。",
+  "raw_comment": "「気持ちは嬉しいけど、渡す相手も分からんまま山ほど作ってどないすんねん！」",
+  "body1": "帰還時のお土産を張り切って用意した。けれど、誰に何個渡すのか、相手",
+  "body2": "が抹茶を好きなのかも確かめていない。大事なことを聞く前に、箱だけが",
+  "body3": "増えていた。",
+  "comment": "「気持ちは嬉しいけど、渡す相手も分からんまま山ほど作ってどないすん",
+  "comment2": "ねん！」"
+ },
+ "february_clear": {
+  "title": "2月 CLEAR『その日まで、ふたりで』",
+  "classification": "月間クリア",
+  "flag": "normal_ch02_clear",
+  "condition1": "",
+  "raw_body": "一年の期限が近づき、帰還の準備を先回りして進めたくなった。けれど、善意でも相手の未来を勝手に決めるべきではない。今は二人で、世界一を目指して歩く。その先に何があるかは、三月が終わってから話そうと約束した。まだ言葉にできていない問いがあることには、気づかないまま。",
+  "raw_comment": "「世界一になるんも、店を続けるんも、ウチら二人で考えてきたことや。最後まで、そうしたいな」",
+  "body1": "一年の期限が近づき、帰還の準備を先回りして進めたくなった。けれど、",
+  "body2": "善意でも相手の未来を勝手に決めるべきではない。今は二人で、世界一を",
+  "body3": "目指して歩く。その先に何があるかは、三月が終わってから話そうと約束",
+  "body4": "した。まだ言葉にできていない問いがあることには、気づかないまま。",
+  "comment": "「世界一になるんも、店を続けるんも、ウチら二人で考えてきたことや。",
+  "comment2": "最後まで、そうしたいな」"
+ }
+};
+Object.keys(februaryArchiveMap).forEach(function (key) {
+ var item = februaryArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "february_clear" ? "達成済み" : "回収済み") : "";
+ f["february_record_list_"+key] = item.status ? item.title : "？？？";
+});
+var januaryArchiveMap = {
+ "core_015": {
+  "title": "BAD015｜満点の味、ゼロの顔",
+  "classification": "CORE BAD",
+  "flag": "core_bad_015",
+  "condition1": "CHOICE 01 A「採点表で百点になる味へ、徹底的に寄せよう」",
+  "raw_body": "味を磨こうとして、五つの評価項目をひたすら最適化した。自分たちの採点表では百点になった。けれど、数字の違いばかり追っているうちに、目の前で食べる人が何を好きで、どんな顔をするのかを見なくなっていた。満点の味は作れても、笑顔までは採点できなかった。",
+  "raw_comment": "「百点の紙は残った。でも、あの人らの『また食べたい』を置いてきてもうたんやな……」",
+  "body1": "味を磨こうとして、五つの評価項目をひたすら最適化した。自分たちの採",
+  "body2": "点表では百点になった。けれど、数字の違いばかり追っているうちに、目",
+  "body3": "の前で食べる人が何を好きで、どんな顔をするのかを見なくなっていた。",
+  "body4": "満点の味は作れても、笑顔までは採点できなかった。",
+  "comment": "「百点の紙は残った。でも、あの人らの『また食べたい』を置いてきても",
+  "comment2": "うたんやな……」"
+ },
+ "mini_m08": {
+  "title": "M08｜試食アンケート十二枚",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m08",
+  "condition1": "CHOICE 00 A「アンケートをもっと細かく十二枚にしよう」",
+  "raw_body": "味の感想を正確に集めようと、試食アンケートを十二枚に増やした。書き終える頃にはエクレアはすっかり冷め、食べる時間より回答する時間の方が長くなっていた。",
+  "raw_comment": "「お菓子食べに来た人に、宿題十二枚も出したらあかんわ……」",
+  "body1": "味の感想を正確に集めようと、試食アンケートを十二枚に増やした。書き",
+  "body2": "終える頃にはエクレアはすっかり冷め、食べる時間より回答する時間の方",
+  "body3": "が長くなっていた。",
+  "comment": "「お菓子食べに来た人に、宿題十二枚も出したらあかんわ……」",
+  "comment2": ""
+ },
+ "mini_m09": {
+  "title": "M09｜理想温度、あと0.1℃",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m09",
+  "condition1": "CHOICE 00 B「提供温度を0.1℃刻みで完璧に合わせよう」",
+  "raw_body": "エクレアを理想の温度で出そうと、0.1℃刻みの微調整を繰り返した。温度は完璧になったが、お客さんに渡すタイミングを逃してしまった。",
+  "raw_comment": "「温度計は満足したかもしれへんけど、お客さんに食べてもらわななあ……」",
+  "body1": "エクレアを理想の温度で出そうと、0.1℃刻みの微調整を繰り返した。",
+  "body2": "温度は完璧になったが、お客さんに渡すタイミングを逃してしまった。",
+  "comment": "「温度計は満足したかもしれへんけど、お客さんに食べてもらわななあ…",
+  "comment2": "…」"
+ },
+ "january_clear": {
+  "title": "1月 CLEAR『点数の外にある、おいしい』",
+  "classification": "月間クリア",
+  "flag": "normal_ch01_clear",
+  "condition1": "",
+  "raw_body": "世界一に近づくため、二人は味を点数で確かめ始めた。数字にすると変化が見え、より安定した商品を作れた。けれど、点数には「どんな時に食べたいか」「誰と食べると嬉しいか」までは書き切れなかった。数値は味を磨く道具。最後に見つめるのは、目の前で食べる人の顔だった。",
+  "raw_comment": "「百点にしたいんは、紙の上やなくて、食べてくれた人の一日かもしれへんな」",
+  "body1": "世界一に近づくため、二人は味を点数で確かめ始めた。数字にすると変化",
+  "body2": "が見え、より安定した商品を作れた。けれど、点数には「どんな時に食べ",
+  "body3": "たいか」「誰と食べると嬉しいか」までは書き切れなかった。数値は味を",
+  "body4": "磨く道具。最後に見つめるのは、目の前で食べる人の顔だった。",
+  "comment": "「百点にしたいんは、紙の上やなくて、食べてくれた人の一日かもしれへ",
+  "comment2": "んな」"
+ }
+};
+Object.keys(januaryArchiveMap).forEach(function (key) {
+ var item = januaryArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "january_clear" ? "達成済み" : "回収済み") : "";
+ f["january_record_list_"+key] = item.status ? item.title : "？？？";
+});
+var decemberArchiveMap = {
+ "core_014": {
+  "title": "BAD014｜完売、そして倒れる",
+  "classification": "CORE BAD",
+  "flag": "core_bad_014",
+  "condition1": "CHOICE 01 A「期待を裏切れない。全部受けて、夜も作ろう」",
+  "raw_body": "期待に応えようと、予定を超える注文を全部引き受けた。商品はそろった。けれど主人公は無理を重ねて倒れ、店は予定どおり開けられなくなった。全部売ることと、明日も店を続けられることは同じではない。",
+  "raw_comment": "「売り切れるより、あんたがちゃんと店におる方が大事や。ウチ、一人で世界一なっても嬉しないで」",
+  "body1": "期待に応えようと、予定を超える注文を全部引き受けた。商品はそろっ",
+  "body2": "た。けれど主人公は無理を重ねて倒れ、店は予定どおり開けられなくなっ",
+  "body3": "た。全部売ることと、明日も店を続けられることは同じではない。",
+  "comment": "「売り切れるより、あんたがちゃんと店におる方が大事や。ウチ、一人で",
+  "comment2": "世界一なっても嬉しないで」"
+ },
+ "mini_m06": {
+  "title": "M06｜予約票タワー",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m06",
+  "condition1": "CHOICE 00 A「予約票を目立つところに全部貼ろう」",
+  "raw_body": "予約票を全部目立つところに貼った。目立ちすぎて、肝心の受け取り日がどこにあるのか分からなくなった。",
+  "raw_comment": "「目立つことと、見つけやすいことは違うんやな……」",
+  "body1": "予約票を全部目立つところに貼った。目立ちすぎて、肝心の受け取り日が",
+  "body2": "どこにあるのか分からなくなった。",
+  "comment": "「目立つことと、見つけやすいことは違うんやな……」",
+  "comment2": ""
+ },
+ "mini_m07": {
+  "title": "M07｜リボンの迷宮",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m07",
+  "condition1": "CHOICE 00 B「特別感を出すため、全部の箱にリボンを何重にも結ぼう」",
+  "raw_body": "特別な包装にしようとリボンを重ねた。見た目は豪華になったが、包むのも開けるのも一苦労。肝心のお菓子を用意する時間がなくなった。",
+  "raw_comment": "「中身より箱に時間かけたら、何屋か分からんくなるわ……」",
+  "body1": "特別な包装にしようとリボンを重ねた。見た目は豪華になったが、包むの",
+  "body2": "も開けるのも一苦労。肝心のお菓子を用意する時間がなくなった。",
+  "comment": "「中身より箱に時間かけたら、何屋か分からんくなるわ……」",
+  "comment2": ""
+ },
+ "december_clear": {
+  "title": "12月 CLEAR『明日も仕込みができるように』",
+  "classification": "月間クリア",
+  "flag": "normal_ch12_clear",
+  "condition1": "",
+  "raw_body": "クリスマスの注文は、予想以上に増えた。全部を引き受ければ、数字はもっと伸びたかもしれない。けれど二人は、作れる数を守り、足りない分は日を改めて相談した。完売して終わりではない。来年も同じ厨房で作るために、休むことも店の仕事なのだと知った。",
+  "raw_comment": "「世界一になっても、次の日にウチらがおらへんかったら意味ないもんな。明日も作れる店にしよ！」",
+  "body1": "クリスマスの注文は、予想以上に増えた。全部を引き受ければ、数字はも",
+  "body2": "っと伸びたかもしれない。けれど二人は、作れる数を守り、足りない分は",
+  "body3": "日を改めて相談した。完売して終わりではない。来年も同じ厨房で作るた",
+  "body4": "めに、休むことも店の仕事なのだと知った。",
+  "comment": "「世界一になっても、次の日にウチらがおらへんかったら意味ないもん",
+  "comment2": "な。明日も作れる店にしよ！」"
+ }
+};
+Object.keys(decemberArchiveMap).forEach(function (key) {
+ var item = decemberArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "december_clear" ? "達成済み" : "回収済み") : "";
+ f["december_record_list_"+key] = item.status ? item.title : "？？？";
+});
+var novemberArchiveMap = {
+ "core_012": {
+  "title": "BAD012｜神様の言うとおり",
+  "classification": "CORE BAD",
+  "flag": "core_bad_012",
+  "condition1": "CHOICE 01 A「女神様のお言葉を、そのまま正解にしよう」",
+  "body1": "女神の言葉は正しかった。けれど、そこに「考えなくていい」という意味",
+  "body2": "まで付け足してしまった。",
+  "body3": "お客様の声も、新しい試作も、店が前に進むための工夫も止まった。",
+  "body4": "神様を信じることと、自分たちの判断を手放すことは違う。",
+  "comment": "「神様が何も言わへん日にも、ウチらの店は開けなあかんねんな」",
+  "comment2": ""
+ },
+ "core_013": {
+  "title": "BAD013｜深読みしすぎ",
+  "classification": "CORE BAD",
+  "flag": "core_bad_013",
+  "condition1": "CHOICE 01 B「この言葉には、隠された条件があるはず」",
+  "body1": "世界一の条件に、隠された暗号があると思い込んだ。",
+  "body2": "女神の何気ない言葉まで特別な指示に見え、まだ存在しない答えを探し続",
+  "body3": "けた。",
+  "body4": "その間に、今日の店と明日の仕込みが後回しになっていた。",
+  "body5": "分からないことは、まず聞けばよかった。",
+  "comment": "「神様の言葉、難しいんとちゃう。ウチらが勝手に難しくしてたんやな」",
+  "comment2": ""
+ },
+ "mini_m04": {
+  "title": "M04｜神様へのお供え物",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m04",
+  "condition1": "CHOICE 00 A「まずはエクレアでご機嫌を取ろう」",
+  "body1": "女神様に気持ちよく答えてもらおうと、抹茶エクレアを次々に差し出し",
+  "body2": "た。",
+  "body3": "おもてなしは大成功。でも、聞きたかったことは一つも聞けなかった。",
+  "comment": "「喜んでもろえたんはええけど、何しに来てもろたんやっけ……」",
+  "comment2": ""
+ },
+ "mini_m05": {
+  "title": "M05｜神託FAQ・全108問",
+  "classification": "MINI BAD",
+  "flag": "mini_bad_m05",
+  "condition1": "CHOICE 00 B「聞き漏らし防止に108問用意しよう」",
+  "body1": "説明不足を防ごうと、質問を百八個も用意した。",
+  "body2": "ところが肝心の条件を聞く前に、店の営業時間が始まってしまった。",
+  "comment": "「質問にも優先順位があるんやな。百八個はさすがに多いわ……」",
+  "comment2": ""
+ },
+ "november_clear": {
+  "title": "11月 CLEAR『神様の言葉、ウチらの答え』",
+  "classification": "月間クリア",
+  "flag": "normal_ch11_clear",
+  "condition1": "",
+  "body1": "女神が再び店を訪れ、一年の条件について確かめた。",
+  "body2": "神様の言葉だからといって、考えることをやめる必要はない。",
+  "body3": "不思議な言葉だからといって、隠れた意味を探し続ける必要もない。",
+  "body4": "分からないことは、聞けばいい。",
+  "body5": "十一月に覚えたのは、答えを決めつける前に、問いかけることだった。",
+  "comment": "「分からんまま悩むより、聞いてみた方が早いこともあるんやな」",
+  "comment2": ""
+ }
+};
+Object.keys(novemberArchiveMap).forEach(function (key) {
+ var item = novemberArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "november_clear" ? "達成済み" : "回収済み") : "";
+ f["november_record_list_"+key] = item.status ? item.title : "？？？";
+});
+var octoberArchiveMap = {
+ "core_010": {
+  "title": "BAD010｜世界には売れた。店から消えた。",
+  "classification": "CORE BAD",
+  "flag": "core_bad_010",
+  "condition1": "CHOICE 01「海外で売れる形に、全部作り変えよう」",
+  "body1": "海外の企画では売れた。数字も残った。",
+  "body2": "けれど、売れやすさを優先して商品を変え、仕事を増やし続けた結果、",
+  "body3": "Komorebiのショーケースから、いつもの抹茶エクレアが消えた。",
+  "body4": "「世界に届ける」と「自分たちの店をなくす」は同じではなかった。",
+  "comment": "「遠くで売れたんは嬉しい。でも、ここに来た人に出せへんかったら、何",
+  "comment2": "を届けたんやろ……」"
+ },
+ "core_011": {
+  "title": "BAD011｜伝わらなければ届かない",
+  "classification": "CORE BAD",
+  "flag": "core_bad_011",
+  "condition1": "CHOICE 01「本物なら、説明しなくても伝わるはず」",
+  "body1": "味は変えなかった。店も、いつもどおりだった。",
+  "body2": "しかし、初めて知る人のための説明も、必要な情報も用意しなかった。",
+  "body3": "手に取ってもらう前に、話は終わった。",
+  "body4": "いいものでも、届かなければ知ってもらえない。",
+  "comment": "「好きなもんほど、相手も知ってる気になってまうんやな……」",
+  "comment2": ""
+ },
+ "october_clear": {
+  "title": "10月 CLEAR『海の向こうへ、いつもの味』",
+  "classification": "月間クリア",
+  "flag": "normal_ch10_clear",
+  "body1": "初めて、海の向こうの人へKomorebiの抹茶エクレアを説明した。",
+  "body2": "知っている人には当たり前の味も、初めての人には、言葉も案内も必要だ",
+  "body3": "った。",
+  "body4": "伝え方は変えた。けれど、毎日店で作る味は変えなかった。",
+  "body5": "十月に覚えたのは、遠くへ届けるためにも、帰ってこられる店を残すこと",
+  "body6": "だった。",
+  "comment": "「世界って遠いけど、まずは目の前の一人からなんやな」",
+  "comment2": ""
+ }
+};
+Object.keys(octoberArchiveMap).forEach(function (key) {
+ var item = octoberArchiveMap[key];
+ item.status = sf[item.flag] === true ? (key === "october_clear" ? "達成済み" : "回収済み") : "";
+ f["october_record_list_"+key] = item.status ? item.title : "？？？";
+});
 var septemberArchiveMap = {
  core_009:{title:"BAD009｜勝ったけど負けた",classification:"CORE BAD",status:(sf.core_bad_009===true?"回収済み":""),condition1:"CHOICE 01「久世さんより売ることを最優先にしよう」",body1:"催事の数字では勝った。",body2:"売上も、完売の早さも、隣の店より上だった。",body3:"でもそのために、値段を崩し、店の仕込みを止め、",body4:"「何のために催事へ出たのか」を見失った。",body5:"相手に勝つことと、",body6:"自分たちの目的を達成することは違う。",comment:"勝ったはずやのに、ゴールから遠ざかってたら",comment2:"意味ないわな……"},
  september_clear:{title:"9月 CLEAR『店の外でも、ウチらの店』",classification:"CLEAR",status:(sf.normal_ch09_clear===true?"達成済み":""),body1:"初めて、店の外で他の店と並んだ。",body2:"数字も、行列も、売上も、",body3:"比べようと思えばいくらでも比べられた。",body4:"でも催事で持ち帰りたかったのは、勝敗ではなかった。",body5:"店を知ってくれる人。次に店へ来てくれる人。",body6:"そして、自分たちが何を届けたいのかという答え。",body7:"九月に覚えたのは、外へ出ても、",body8:"自分たちの目的を見失わないことだった。",comment:"勝つんもええけど、ウチらの店を好きになって",comment2:"もらう方が、もっと強いかもしれへんな"}
@@ -469,8 +1016,399 @@ f.april_record_list_clear = (sf.normal_ch04_clear === true ? archiveMap.clear.ti
 f.april_record_list_core_003 = (sf.core_bad_003 === true ? mayArchiveMap.core_003.title : "？？？");
 f.april_record_list_core_004 = (sf.core_bad_004 === true ? mayArchiveMap.core_004.title : "？？？");
 f.april_record_list_may_clear = (sf.normal_ch05_clear === true ? mayArchiveMap.may_clear.title : "？？？");
-f.april_record_detail_body3 = ""; f.april_record_detail_body4 = ""; f.april_record_detail_body5 = ""; f.april_record_detail_body6 = ""; f.april_record_detail_body7 = ""; f.april_record_detail_body8 = ""; f.april_record_detail_comment2 = ""; f.april_record_is_may_clear = false; f.april_record_is_july_bad = false; f.april_record_is_august_bad = false; f.april_record_is_august_clear = false; f.april_record_is_september_bad = false; f.april_record_is_september_clear = false;
-if (f.april_record_month == "09" && f.april_record_tab == "CG") {
+f.april_record_detail_body3 = ""; f.april_record_detail_body4 = ""; f.april_record_detail_body5 = ""; f.april_record_detail_body6 = ""; f.april_record_detail_body7 = ""; f.april_record_detail_body8 = ""; f.april_record_detail_comment2 = ""; f.april_record_is_may_clear = false; f.april_record_is_july_bad = false; f.april_record_is_august_bad = false; f.april_record_is_august_clear = false; f.april_record_is_september_bad = false; f.april_record_is_september_clear = false; f.april_record_is_october_bad = false; f.april_record_is_october_clear = false; f.april_record_is_november_bad = false; f.april_record_is_november_clear = false; f.april_record_is_december_bad = false; f.april_record_is_december_clear = false; f.april_record_is_january_bad = false; f.april_record_is_january_clear = false; f.april_record_is_february_bad = false; f.april_record_is_february_clear = false; f.april_record_is_march = false;
+if (f.april_record_month == "03" && f.april_record_tab == "CG") {
+ var marchCgRecords = {
+ "event_01": {
+  "title": "CG15_01｜Across the Same Stage",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_01_Across_the_Same_Stage.png",
+  "flag": "cg_march_event_01",
+  "caption": "「九月は催事の隣同士。三月は、同じ決勝の舞台へ。二人とも、今度は自分たちの味で勝負する。」"
+ },
+ "event_02": {
+  "title": "CG15_02｜The Real Pâtissier",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_02_The_Real_Patissier.png",
+  "flag": "cg_march_event_02",
+  "caption": "「『手加減はしない』。久世玲が、一個のエクレアに積み上げてきた技術のすべてを注ぎ込む。」"
+ },
+ "event_03": {
+  "title": "CG15_03｜One Bite, One World",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_03_One_Bite_One_World.png",
+  "flag": "cg_march_event_03",
+  "caption": "「十月に言葉を整えた味を、今度は世界の人がひと口。返ってきたのは、いつもの店でも聞いた『もう一つ』だった。」"
+ },
+ "event_04": {
+  "title": "CG15_04｜The World's Best Éclair",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_04_The_Worlds_Best_Eclair.png",
+  "flag": "cg_march_event_04",
+  "caption": "「失敗を重ね、聞いて、作り直した一年。その一個が、世界一に選ばれた。」"
+ },
+ "event_05": {
+  "title": "CG15_05｜One Last Look",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_05_One_Last_Look.png",
+  "flag": "cg_march_event_05",
+  "caption": "「世界一になった夜、抹茶ちゃんは厨房から帰っていった。『三月が終わったら話す』という約束を残して。」"
+ },
+ "event_06": {
+  "title": "CG15_06｜The Promise Left Unspoken",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_06_The_Promise_Left_Unspoken.png",
+  "flag": "cg_march_event_06",
+  "caption": "「世界一の店は、今日も開いている。それでも、一緒に話すはずだった言葉だけが残った。」"
+ },
+ "event_07": {
+  "title": "CG15_07｜By Your Name",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_07_By_Your_Name.png",
+  "flag": "cg_march_event_07",
+  "caption": "「世界一になったその夜、抹茶ちゃんは初めて相棒を名前で呼んだ。答えを自分の言葉で伝えるために。」"
+ },
+ "event_08": {
+  "title": "CG15_08｜The Day After",
+  "kind": "イベントCG",
+  "file": "cg/march/CG15_08_The_Day_After.png",
+  "flag": "cg_march_event_08",
+  "caption": "「世界一の、その次の日。いつもの厨房には、いつもの仕込みと、これからも続く日常があった。」"
+ },
+ "mini_01": {
+  "title": "SD15_01｜優勝スピーチ三時間",
+  "kind": "ミニイベントCG",
+  "file": "cg/march/SD15_01_MiniBad012_Three_Hour_Speech.png",
+  "flag": "cg_march_mini_01",
+  "caption": "「優勝後のスピーチを練習していたら三時間。思い出が多すぎて、出品準備まで進めなかった。」"
+ },
+ "mini_02": {
+  "title": "SD15_02｜世界一、先に印刷",
+  "kind": "ミニイベントCG",
+  "file": "cg/march/SD15_02_MiniBad013_Print_First.png",
+  "flag": "cg_march_mini_02",
+  "caption": "「優勝記念の帯紙を先に刷った。けれど世界一は、まだ誰にも決めてもらっていなかった。」"
+ }
+};
+ var marchCgRec = marchCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? marchCgRecords.mini_01 : marchCgRecords.event_01);
+ var marchCgOpened = sf[marchCgRec.flag] === true;
+ f.april_record_locked = !marchCgOpened; f.april_record_detail_title = marchCgOpened ? marchCgRec.title : "？？？";
+ f.april_record_detail_meta = marchCgOpened ? "分類："+marchCgRec.kind+"　｜　月：3月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = marchCgOpened ? marchCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = marchCgOpened; f.april_record_cg_file = marchCgRec.file;
+ Object.keys(marchCgRecords).forEach(function (key) {
+   f["march_record_list_cg_"+key] = sf[marchCgRecords[key].flag] === true ? marchCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "03") {
+ var marchRec = marchArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? marchArchiveMap.mini_m12 : marchArchiveMap.core_017);
+ f.april_record_locked = marchRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : marchRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+marchRec.classification+"　｜　月：3月　｜　状態："+marchRec.status;
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ for (var marchLine=1; marchLine<=8; marchLine++) f["april_record_detail_body"+marchLine] = f.april_record_locked ? "" : (marchRec["body"+marchLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : marchRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : marchRec.comment2;
+ f.april_record_detail_note = ""; f.april_record_is_march = true;
+} else if (f.april_record_month == "02" && f.april_record_tab == "CG") {
+ var februaryCgRecords = {
+ "event_01": {
+  "title": "CG14_01｜Whose Peace of Mind?",
+  "kind": "イベントCG",
+  "file": "cg/february/CG14_01_Whose_Peace_of_Mind.png",
+  "flag": "cg_february_event_01",
+  "caption": "「“帰れるようにしておきたい”。その優しさに、抹茶ちゃんは静かに問い返した。安心するのは、誰なのか。」"
+ },
+ "event_02": {
+  "title": "CG14_02｜The Road We Closed",
+  "kind": "イベントCG",
+  "file": "cg/february/CG14_02_The_Road_We_Closed.png",
+  "flag": "cg_february_event_02",
+  "caption": "「帰れるようにと、ひとりで段取りを整えた。その間に、二人で世界一を目指す機会を逃してしまった。」"
+ },
+ "event_03": {
+  "title": "CG14_03｜The Invitation to the World",
+  "kind": "イベントCG",
+  "file": "cg/february/CG14_03_The_Invitation_to_the_World.png",
+  "flag": "cg_february_event_03",
+  "caption": "「いつも一つ買って帰る客が、今日は封筒を持ってきた。Komorebiの積み重ねが、世界へ続く舞台につながった。」"
+ },
+ "mini_01": {
+  "title": "SD14_01｜厨房まるごと荷造り",
+  "kind": "ミニイベントCG",
+  "file": "cg/february/SD14_01_MiniBad010_Kitchen_Packing.png",
+  "flag": "cg_february_mini_01",
+  "caption": "「先に荷物をまとめたら、今日の仕込みに使う泡立て器まで箱の中。結局すべて開け直すことになった。」"
+ },
+ "mini_02": {
+  "title": "SD14_02｜お土産、誰の分？",
+  "kind": "ミニイベントCG",
+  "file": "cg/february/SD14_02_MiniBad011_Gifts_For_Whom.png",
+  "flag": "cg_february_mini_02",
+  "caption": "「帰還時のお土産を張り切って準備した。でも誰に何個渡すのか、相手が抹茶を好きかさえ確かめていなかった。」"
+ }
+};
+ var februaryCgRec = februaryCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? februaryCgRecords.mini_01 : februaryCgRecords.event_01);
+ var februaryCgOpened = sf[februaryCgRec.flag] === true;
+ f.april_record_locked = !februaryCgOpened; f.april_record_detail_title = februaryCgOpened ? februaryCgRec.title : "？？？";
+ f.april_record_detail_meta = februaryCgOpened ? "分類："+februaryCgRec.kind+"　｜　月：2月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = februaryCgOpened ? februaryCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = februaryCgOpened; f.april_record_cg_file = februaryCgRec.file;
+ Object.keys(februaryCgRecords).forEach(function (key) {
+   f["february_record_list_cg_"+key] = sf[februaryCgRecords[key].flag] === true ? februaryCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "02") {
+ var februaryRec = februaryArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? februaryArchiveMap.mini_m10 : februaryArchiveMap.core_016);
+ f.april_record_locked = februaryRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : februaryRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+februaryRec.classification+"　｜　月：2月　｜　状態："+februaryRec.status;
+ f.april_record_detail_condition1 = f.april_record_locked ? "" : (februaryRec.condition1 || ""); f.april_record_detail_condition2 = "";
+ for (var februaryLine=1; februaryLine<=8; februaryLine++) f["april_record_detail_body"+februaryLine] = f.april_record_locked ? "" : (februaryRec["body"+februaryLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : februaryRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : februaryRec.comment2;
+ f.april_record_detail_note = "";
+ f.april_record_is_february_bad = f.april_record_selected !== "february_clear";
+ f.april_record_is_february_clear = f.april_record_selected === "february_clear";
+} else if (f.april_record_month == "01" && f.april_record_tab == "CG") {
+ var januaryCgRecords = {
+ "event_01": {
+  "title": "CG13_01｜The Five Columns",
+  "kind": "イベントCG",
+  "file": "cg/january/CG13_01_The_Five_Columns.png",
+  "flag": "cg_january_event_01",
+  "caption": "五つの欄に点数を書き込む。その横で、三好さんは“お茶と一緒に食べるのが好き”と微笑んだ。"
+ },
+ "event_02": {
+  "title": "CG13_02｜A Perfect Score, An Empty Smile",
+  "kind": "イベントCG",
+  "file": "cg/january/CG13_02_A_Perfect_Score_An_Empty_Smile.png",
+  "flag": "cg_january_event_02",
+  "caption": "採点表では百点だった。それなのに、『また食べたい』と笑う声が遠くなっていた。"
+ },
+ "event_03": {
+  "title": "CG13_03｜Beyond the Score",
+  "kind": "イベントCG",
+  "file": "cg/january/CG13_03_Beyond_the_Score.png",
+  "flag": "cg_january_event_03",
+  "caption": "点数の横にひとこと書く欄を作った。そこには、また食べたいと思う理由があった。"
+ },
+ "mini_01": {
+  "title": "SD13_01｜試食アンケート十二枚",
+  "kind": "ミニイベントCG",
+  "file": "cg/january/SD13_01_MiniBad008_Survey_12_Pages.png",
+  "flag": "cg_january_mini_01",
+  "caption": "試食アンケートを十二枚に増やした。書き終える頃には、食べる時間より回答する時間の方が長くなっていた。"
+ },
+ "mini_02": {
+  "title": "SD13_02｜理想温度、あと0.1℃",
+  "kind": "ミニイベントCG",
+  "file": "cg/january/SD13_02_MiniBad009_Zero_Point_One_Degree.png",
+  "flag": "cg_january_mini_02",
+  "caption": "0.1℃刻みで調整を続け、温度は完璧になった。けれど、お客さんに渡すタイミングを逃してしまった。"
+ }
+};
+ var januaryCgRec = januaryCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? januaryCgRecords.mini_01 : januaryCgRecords.event_01);
+ var januaryCgOpened = sf[januaryCgRec.flag] === true;
+ f.april_record_locked = !januaryCgOpened; f.april_record_detail_title = januaryCgOpened ? januaryCgRec.title : "？？？";
+ f.april_record_detail_meta = januaryCgOpened ? "分類："+januaryCgRec.kind+"　｜　月：1月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = januaryCgOpened ? januaryCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = januaryCgOpened; f.april_record_cg_file = januaryCgRec.file;
+ Object.keys(januaryCgRecords).forEach(function (key) {
+   f["january_record_list_cg_"+key] = sf[januaryCgRecords[key].flag] === true ? januaryCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "01") {
+ var januaryRec = januaryArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? januaryArchiveMap.mini_m08 : januaryArchiveMap.core_015);
+ f.april_record_locked = januaryRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : januaryRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+januaryRec.classification+"　｜　月：1月　｜　状態："+januaryRec.status;
+ f.april_record_detail_condition1 = f.april_record_locked ? "" : (januaryRec.condition1 || ""); f.april_record_detail_condition2 = "";
+ for (var januaryLine=1; januaryLine<=8; januaryLine++) f["april_record_detail_body"+januaryLine] = f.april_record_locked ? "" : (januaryRec["body"+januaryLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : januaryRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : januaryRec.comment2;
+ f.april_record_detail_note = "";
+ f.april_record_is_january_bad = f.april_record_selected !== "january_clear";
+ f.april_record_is_january_clear = f.april_record_selected === "january_clear";
+} else if (f.april_record_month == "12" && f.april_record_tab == "CG") {
+ var decemberCgRecords = {
+ "event_01": {
+  "title": "CG12_01｜Just One More Order",
+  "kind": "イベントCG",
+  "file": "cg/december/CG12_01_Just_One_More_Order.png",
+  "flag": "cg_december_event_01",
+  "caption": "嬉しい注文が届いた。けれど“もう少しだけ頑張る”という言葉が、明日をなくしてしまうこともある。"
+ },
+ "event_02": {
+  "title": "CG12_02｜Sold Out, Then Collapse",
+  "kind": "イベントCG",
+  "file": "cg/december/CG12_02_Sold_Out_Then_Collapse.png",
+  "flag": "cg_december_event_02",
+  "caption": "全部そろえた。けれど、その先の“明日”を置き去りにしてしまった。"
+ },
+ "event_03": {
+  "title": "CG12_03｜The Last Customer of the Year",
+  "kind": "イベントCG",
+  "file": "cg/december/CG12_03_The_Last_Customer_of_the_Year.png",
+  "flag": "cg_december_event_03",
+  "caption": "今年最後のお客さんに、最後の二つを渡した。ちゃんと作って、ちゃんと終われた一日だった。"
+ },
+ "mini_01": {
+  "title": "SD12_01｜予約票タワー",
+  "kind": "ミニイベントCG",
+  "file": "cg/december/SD12_01_MiniBad006_Reservation_Tower.png",
+  "flag": "cg_december_mini_01",
+  "caption": "予約票を全部目立つところに貼った。目立ちすぎて、肝心の受け取り日がどこにあるのか分からなくなった。"
+ },
+ "mini_02": {
+  "title": "SD12_02｜リボンの迷宮",
+  "kind": "ミニイベントCG",
+  "file": "cg/december/SD12_02_MiniBad007_Ribbon_Maze.png",
+  "flag": "cg_december_mini_02",
+  "caption": "特別な包装にしようとリボンを重ねた。見た目は豪華になったが、包むのも開けるのも一苦労だった。"
+ }
+};
+ var decemberCgRec = decemberCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? decemberCgRecords.mini_01 : decemberCgRecords.event_01);
+ var decemberCgOpened = sf[decemberCgRec.flag] === true;
+ f.april_record_locked = !decemberCgOpened; f.april_record_detail_title = decemberCgOpened ? decemberCgRec.title : "？？？";
+ f.april_record_detail_meta = decemberCgOpened ? "分類："+decemberCgRec.kind+"　｜　月：12月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = decemberCgOpened ? decemberCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = decemberCgOpened; f.april_record_cg_file = decemberCgRec.file;
+ Object.keys(decemberCgRecords).forEach(function (key) {
+   f["december_record_list_cg_"+key] = sf[decemberCgRecords[key].flag] === true ? decemberCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "12") {
+ var decemberRec = decemberArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? decemberArchiveMap.mini_m06 : decemberArchiveMap.core_014);
+ f.april_record_locked = decemberRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : decemberRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+decemberRec.classification+"　｜　月：12月　｜　状態："+decemberRec.status;
+ f.april_record_detail_condition1 = f.april_record_locked ? "" : (decemberRec.condition1 || ""); f.april_record_detail_condition2 = "";
+ for (var decemberLine=1; decemberLine<=8; decemberLine++) f["april_record_detail_body"+decemberLine] = f.april_record_locked ? "" : (decemberRec["body"+decemberLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : decemberRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : decemberRec.comment2;
+ f.april_record_detail_note = "";
+ f.april_record_is_december_bad = f.april_record_selected !== "december_clear";
+ f.april_record_is_december_clear = f.april_record_selected === "december_clear";
+} else if (f.april_record_month == "11" && f.april_record_tab == "CG") {
+ var novemberCgRecords = {
+ "event_01": {
+  "title": "CG11_01｜She Really Came",
+  "kind": "イベントCG",
+  "file": "cg/november/CG11_01_She_Really_Came.png",
+  "flag": "cg_november_event_01",
+  "caption": "説明不足やとこぼしたその瞬間、女神様は本当に現れた。十一月は、まず「聞くこと」から始まる。"
+ },
+ "event_02": {
+  "title": "CG11_02｜A Goddess Is Also a Customer",
+  "kind": "イベントCG",
+  "file": "cg/november/CG11_02_A_Goddess_Is_Also_a_Customer.png",
+  "flag": "cg_november_event_02",
+  "caption": "神様も、お客さんだった。抹茶エクレアをひと口食べたその声で、今の味がちゃんと届いたと分かった。"
+ },
+ "mini_01": {
+  "title": "SD11_01｜神様へのお供え物",
+  "kind": "ミニイベントCG",
+  "file": "cg/november/SD11_01_MiniBad004_Offering_for_the_Goddess.png",
+  "flag": "cg_november_mini_01",
+  "caption": "女神様に気持ちよく答えてもらおうとして、お菓子を出しすぎた。喜んでもらえたけれど、聞きたかったことは一つも聞けなかった。"
+ },
+ "mini_02": {
+  "title": "SD11_02｜神託FAQ・全108問",
+  "kind": "ミニイベントCG",
+  "file": "cg/november/SD11_02_MiniBad005_FAQ108.png",
+  "flag": "cg_november_mini_02",
+  "caption": "聞き漏らしを防ごうとして、質問を百八個も用意した。けれど大事なことを聞く前に、店の時間が始まってしまった。"
+ }
+};
+ var novemberCgRec = novemberCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? novemberCgRecords.mini_01 : novemberCgRecords.event_01);
+ var novemberCgOpened = sf[novemberCgRec.flag] === true;
+ f.april_record_locked = !novemberCgOpened; f.april_record_detail_title = novemberCgOpened ? novemberCgRec.title : "？？？";
+ f.april_record_detail_meta = novemberCgOpened ? "分類："+novemberCgRec.kind+"　｜　月：11月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = novemberCgOpened ? novemberCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = novemberCgOpened; f.april_record_cg_file = novemberCgRec.file;
+ Object.keys(novemberCgRecords).forEach(function (key) {
+   f["november_record_list_cg_"+key] = sf[novemberCgRecords[key].flag] === true ? novemberCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "11") {
+ var novemberRec = novemberArchiveMap[f.april_record_selected] || (f.april_record_tab === "MINI" ? novemberArchiveMap.mini_m04 : novemberArchiveMap.core_012);
+ f.april_record_locked = novemberRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : novemberRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+novemberRec.classification+"　｜　月：11月　｜　状態："+novemberRec.status;
+ f.april_record_detail_condition1 = f.april_record_locked ? "" : (novemberRec.condition1 || ""); f.april_record_detail_condition2 = "";
+ for (var novemberLine=1; novemberLine<=8; novemberLine++) f["april_record_detail_body"+novemberLine] = f.april_record_locked ? "" : (novemberRec["body"+novemberLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : novemberRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : novemberRec.comment2;
+ f.april_record_detail_note = "";
+ f.april_record_is_november_bad = f.april_record_selected !== "november_clear";
+ f.april_record_is_november_clear = f.april_record_selected === "november_clear";
+} else if (f.april_record_month == "10" && f.april_record_tab == "CG") {
+ var octoberCgRecords = {
+ "event_01": {
+  "title": "CG10_01｜The Dark Emperor's Notebook",
+  "kind": "イベントCG",
+  "file": "cg/october/CG10_01_The_Dark_Emperors_Notebook.png",
+  "flag": "cg_october_event_01",
+  "caption": "秋のベンチで見つけた秘密のノート。神田ちゃんには、誰にも見せていなかった世界があった。"
+ },
+ "event_02": {
+  "title": "CG10_02｜Words for a New World",
+  "kind": "イベントCG",
+  "file": "cg/october/CG10_02_Words_for_a_New_World.png",
+  "flag": "cg_october_event_02",
+  "caption": "味はそのまま。遠くの誰かにも伝わるように、一枚のカードへ言葉を選んだ。"
+ },
+ "event_03": {
+  "title": "CG10_03｜A Taste Beyond the Sea",
+  "kind": "イベントCG",
+  "file": "cg/october/CG10_03_A_Taste_Beyond_the_Sea.png",
+  "flag": "cg_october_event_03",
+  "caption": "海の向こうから来た一人が、いつもの抹茶エクレアを口にする。言葉にした香りが、ようやく届いた。"
+ },
+ "mini_01": {
+  "title": "SD10_01｜世界には売れた。店から消えた。",
+  "kind": "ミニイベントCG",
+  "file": "cg/october/SD10_01_Bad010_Overseas_But_Gone.png",
+  "flag": "cg_october_mini_01",
+  "caption": "遠くの企画では売れた。しかし、そのためにKomorebiのショーケースから、いつもの味が消えた。"
+ },
+ "mini_02": {
+  "title": "SD10_02｜伝わらなければ届かない",
+  "kind": "ミニイベントCG",
+  "file": "cg/october/SD10_02_Bad011_Not_Communicated.png",
+  "flag": "cg_october_mini_02",
+  "caption": "いつもの味を守った。でも、必要な説明を届けなかったため、食べてもらう前に話が止まった。"
+ }
+};
+ var octoberCgRec = octoberCgRecords[f.april_record_selected] || (f.april_record_cg_category === "MINI" ? octoberCgRecords.mini_01 : octoberCgRecords.event_01);
+ var octoberCgOpened = sf[octoberCgRec.flag] === true;
+ f.april_record_locked = !octoberCgOpened; f.april_record_detail_title = octoberCgOpened ? octoberCgRec.title : "？？？";
+ f.april_record_detail_meta = octoberCgOpened ? "分類："+octoberCgRec.kind+"　｜　月：10月　｜　状態：閲覧可能" : "";
+ f.april_record_detail_condition1 = ""; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = ""; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = octoberCgOpened ? octoberCgRec.caption : ""; f.april_record_detail_note = "";
+ f.april_record_cg_unlocked = octoberCgOpened; f.april_record_cg_file = octoberCgRec.file;
+ Object.keys(octoberCgRecords).forEach(function (key) {
+   f["october_record_list_cg_"+key] = sf[octoberCgRecords[key].flag] === true ? octoberCgRecords[key].title : "？？？";
+ });
+} else if (f.april_record_month == "10" && f.april_record_tab == "MINI") {
+ f.april_record_locked = false; f.april_record_detail_title = "10月のMINI BAD"; f.april_record_detail_meta = "分類：MINI BAD　｜　月：10月　｜　状態：なし";
+ f.april_record_detail_condition1 = "10月のシナリオにMINI BADはありません。"; f.april_record_detail_condition2 = "";
+ f.april_record_detail_body1 = "10月の失敗はCORE BADに記録されます。"; f.april_record_detail_body2 = "";
+ f.april_record_detail_comment = ""; f.april_record_detail_note = ""; f.april_record_selected = "october_mini_none";
+} else if (f.april_record_month == "10") {
+ var octoberRec = octoberArchiveMap[f.april_record_selected] || octoberArchiveMap.core_010;
+ f.april_record_locked = octoberRec.status === ""; f.april_record_detail_title = f.april_record_locked ? "？？？" : octoberRec.title;
+ f.april_record_detail_meta = f.april_record_locked ? "" : "分類："+octoberRec.classification+"　｜　月：10月　｜　状態："+octoberRec.status;
+ f.april_record_detail_condition1 = f.april_record_locked ? "" : (octoberRec.condition1 || ""); f.april_record_detail_condition2 = "";
+ for (var octoberLine=1; octoberLine<=8; octoberLine++) f["april_record_detail_body"+octoberLine] = f.april_record_locked ? "" : (octoberRec["body"+octoberLine] || "");
+ f.april_record_detail_comment = f.april_record_locked ? "" : octoberRec.comment;
+ f.april_record_detail_comment2 = f.april_record_locked ? "" : octoberRec.comment2;
+ f.april_record_detail_note = "";
+ f.april_record_is_october_bad = f.april_record_selected === "core_010" || f.april_record_selected === "core_011";
+ f.april_record_is_october_clear = f.april_record_selected === "october_clear";
+} else if (f.april_record_month == "09" && f.april_record_tab == "CG") {
  var septemberCgRecords = {
   event_01:{title:"CG09_01｜The Professional Next Door",kind:"イベントCG",file:"cg/september/CG09_01_The_Professional_Next_Door.png",flag:"cg_september_event_01",caption:"初めての催事。その隣にいたのは、仕事のすべてが一段先を行く「本物のプロ」だった。"},
   event_02:{title:"CG09_02｜A Way Back to Komorebi",kind:"イベントCG",file:"cg/september/CG09_02_A_Way_Back_to_Komorebi.png",flag:"cg_september_event_02",caption:"催事で出会った一人の客へ、Komorebiへ続く小さなカードを手渡す。"},
@@ -666,8 +1604,422 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
  f.april_record_detail_comment=(f.april_record_locked ? "" : rec.comment); f.april_record_detail_note=(f.april_record_locked ? "" : rec.note);
 }[endscript]
 [ptext layer="1" name="archive_text" text=&f.april_record_heading x="110" y="171" size="23" bold="true" color="0x305332" edge="" width="480"]
-[if exp="f.april_record_month != '04' && f.april_record_month != '05' && f.april_record_month != '06' && f.april_record_month != '07' && f.april_record_month != '08' && f.april_record_month != '09'"]
+[if exp="f.april_record_month != '04' && f.april_record_month != '05' && f.april_record_month != '06' && f.april_record_month != '07' && f.april_record_month != '08' && f.april_record_month != '09' && f.april_record_month != '10' && f.april_record_month != '11' && f.april_record_month != '12' && f.april_record_month != '01' && f.april_record_month != '02' && f.april_record_month != '03'"]
 [ptext layer="1" name="archive_text" text="この月の記録は未実装です" x="78" y="229" size="19" bold="true" color="0x6C542F" edge="" width="500"]
+[elsif exp="f.april_record_month == '03'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_017'"]
+[glink text=&f.march_record_list_core_017 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_017" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_core_017 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_017" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'march_clear'"]
+[glink text=&f.march_record_list_march_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_march_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_march_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_march_clear" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'march_end_01'"]
+[glink text=&f.march_record_list_march_end_01 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_march_end_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_march_end_01 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_march_end_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'march_end_02'"]
+[glink text=&f.march_record_list_march_end_02 color="green" font_color="0x3B2A1B" x="78" y="374" width="520" height="44" size="16" bold="true" target="*records_select_march_end_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_march_end_02 color="green" font_color="0x3B2A1B" x="78" y="374" width="520" height="44" size="16" bold="true" target="*records_select_march_end_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'march_true'"]
+[glink text=&f.march_record_list_march_true color="green" font_color="0x3B2A1B" x="78" y="424" width="520" height="44" size="16" bold="true" target="*records_select_march_true" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_march_true color="green" font_color="0x3B2A1B" x="78" y="424" width="520" height="44" size="16" bold="true" target="*records_select_march_true" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_m12'"]
+[glink text=&f.march_record_list_mini_m12 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m12" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_mini_m12 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m12" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_m13'"]
+[glink text=&f.march_record_list_mini_m13 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m13" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_mini_m13 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m13" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.march_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.march_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="16" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.march_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="282" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="282" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.march_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_03'"]
+[glink text=&f.march_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="366" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="366" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_04'"]
+[glink text=&f.march_record_list_cg_event_04 color="green" font_color="0x3B2A1B" x="78" y="408" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_04" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_04 color="green" font_color="0x3B2A1B" x="78" y="408" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_04" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_05'"]
+[glink text=&f.march_record_list_cg_event_05 color="green" font_color="0x3B2A1B" x="78" y="450" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_05" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_05 color="green" font_color="0x3B2A1B" x="78" y="450" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_05" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_06'"]
+[glink text=&f.march_record_list_cg_event_06 color="green" font_color="0x3B2A1B" x="78" y="492" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_06" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_06 color="green" font_color="0x3B2A1B" x="78" y="492" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_06" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_07'"]
+[glink text=&f.march_record_list_cg_event_07 color="green" font_color="0x3B2A1B" x="78" y="534" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_07" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_07 color="green" font_color="0x3B2A1B" x="78" y="534" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_07" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_08'"]
+[glink text=&f.march_record_list_cg_event_08 color="green" font_color="0x3B2A1B" x="78" y="576" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_08" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.march_record_list_cg_event_08 color="green" font_color="0x3B2A1B" x="78" y="576" width="520" height="36" size="14" bold="true" target="*records_select_cg_event_08" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
+[elsif exp="f.april_record_month == '02'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_016'"]
+[glink text=&f.february_record_list_core_016 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_016" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_core_016 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_016" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'february_clear'"]
+[glink text=&f.february_record_list_february_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_february_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_february_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_february_clear" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_m10'"]
+[glink text=&f.february_record_list_mini_m10 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m10" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_mini_m10 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m10" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_m11'"]
+[glink text=&f.february_record_list_mini_m11 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m11" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_mini_m11 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m11" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.february_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.february_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.february_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.february_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_03'"]
+[glink text=&f.february_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.february_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
+[elsif exp="f.april_record_month == '01'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_015'"]
+[glink text=&f.january_record_list_core_015 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_015" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_core_015 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_015" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'january_clear'"]
+[glink text=&f.january_record_list_january_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_january_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_january_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_january_clear" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_m08'"]
+[glink text=&f.january_record_list_mini_m08 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m08" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_mini_m08 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m08" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_m09'"]
+[glink text=&f.january_record_list_mini_m09 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m09" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_mini_m09 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m09" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.january_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.january_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.january_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.january_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_03'"]
+[glink text=&f.january_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.january_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
+[elsif exp="f.april_record_month == '12'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_014'"]
+[glink text=&f.december_record_list_core_014 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_014" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_core_014 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_014" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'december_clear'"]
+[glink text=&f.december_record_list_december_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_december_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_december_clear color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_december_clear" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_m06'"]
+[glink text=&f.december_record_list_mini_m06 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m06" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_mini_m06 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m06" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_m07'"]
+[glink text=&f.december_record_list_mini_m07 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m07" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_mini_m07 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m07" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.december_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.december_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.december_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.december_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_03'"]
+[glink text=&f.december_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.december_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
+[elsif exp="f.april_record_month == '11'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_012'"]
+[glink text=&f.november_record_list_core_012 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_012" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_core_012 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_012" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'core_013'"]
+[glink text=&f.november_record_list_core_013 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_core_013" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_core_013 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_core_013" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'november_clear'"]
+[glink text=&f.november_record_list_november_clear color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_november_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_november_clear color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_november_clear" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_m04'"]
+[glink text=&f.november_record_list_mini_m04 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m04" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_mini_m04 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_mini_m04" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_m05'"]
+[glink text=&f.november_record_list_mini_m05 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m05" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_mini_m05 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_mini_m05" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.november_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.november_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.november_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.november_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.november_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
+[elsif exp="f.april_record_month == '10'"]
+[if exp="f.april_record_tab == 'CORE'"]
+[if exp="f.april_record_selected == 'core_010'"]
+[glink text=&f.october_record_list_core_010 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_010" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_core_010 color="green" font_color="0x3B2A1B" x="78" y="224" width="520" height="44" size="16" bold="true" target="*records_select_core_010" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'core_011'"]
+[glink text=&f.october_record_list_core_011 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_core_011" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_core_011 color="green" font_color="0x3B2A1B" x="78" y="274" width="520" height="44" size="16" bold="true" target="*records_select_core_011" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'october_clear'"]
+[glink text=&f.october_record_list_october_clear color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_october_clear" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_october_clear color="green" font_color="0x3B2A1B" x="78" y="324" width="520" height="44" size="16" bold="true" target="*records_select_october_clear" name="archive_list_item"]
+[endif]
+[elsif exp="f.april_record_tab == 'MINI'"]
+[ptext layer="1" name="archive_text" text="10月にMINI BADはありません。" x="88" y="228" size="18" bold="true" color="0x6C542F" edge="" width="490"]
+[else]
+[if exp="f.april_record_cg_category == 'EVENT'"]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category archive_selected"]
+[else]
+[glink text="イベントCG" color="green" font_color="0x3B2A1B" x="78" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_event" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category archive_selected"]
+[else]
+[glink text="ミニイベントCG" color="green" font_color="0x3B2A1B" x="348" y="224" width="250" height="44" size="16" bold="true" target="*records_cg_mini" name="archive_cg_category"]
+[endif]
+[if exp="f.april_record_cg_category == 'MINI'"]
+[if exp="f.april_record_selected == 'mini_01'"]
+[glink text=&f.october_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_cg_mini_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'mini_02'"]
+[glink text=&f.october_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_cg_mini_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_mini_02" name="archive_list_item"]
+[endif]
+[else]
+[if exp="f.april_record_selected == 'event_01'"]
+[glink text=&f.october_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_cg_event_01 color="green" font_color="0x3B2A1B" x="78" y="290" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_01" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_02'"]
+[glink text=&f.october_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_cg_event_02 color="green" font_color="0x3B2A1B" x="78" y="345" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_02" name="archive_list_item"]
+[endif]
+[if exp="f.april_record_selected == 'event_03'"]
+[glink text=&f.october_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item archive_selected"]
+[else]
+[glink text=&f.october_record_list_cg_event_03 color="green" font_color="0x3B2A1B" x="78" y="400" width="520" height="44" size="15" bold="true" target="*records_select_cg_event_03" name="archive_list_item"]
+[endif]
+[endif]
+[endif]
 [elsif exp="f.april_record_month == '09'"]
 [if exp="f.april_record_tab == 'CORE'"]
 [if exp="f.april_record_selected == 'core_009'"]
@@ -997,7 +2349,7 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [endif]
 [endif]
 [endif]
-[if exp="(f.april_record_month == '04' || f.april_record_month == '05' || f.april_record_month == '06' || f.april_record_month == '07' || f.april_record_month == '08' || f.april_record_month == '09') && f.april_record_tab == 'CG'"]
+[if exp="(f.april_record_month == '04' || f.april_record_month == '05' || f.april_record_month == '06' || f.april_record_month == '07' || f.april_record_month == '08' || f.april_record_month == '09' || f.april_record_month == '10' || f.april_record_month == '11' || f.april_record_month == '12' || f.april_record_month == '01' || f.april_record_month == '02' || f.april_record_month == '03') && f.april_record_tab == 'CG'"]
 [if exp="f.april_record_locked == true"]
 [ptext layer="1" name="archive_text" text="？？？" x="700" y="172" size="20" bold="true" color="0x305332" edge="" width="520"]
 [ptext layer="1" name="archive_text" text="このページには、まだ表示できる内容がありません。" x="700" y="250" size="17" bold="true" color="0x3B2A1B" edge="" width="500"]
@@ -1006,6 +2358,21 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [ptext layer="1" name="archive_text" text=&f.april_record_detail_meta x="700" y="209" size="13" bold="true" color="0x3B2A1B" edge="" width="520"]
 [image layer="1" name="archive_cg_image" folder="bgimage" storage=&f.april_record_cg_file x="700" y="252" width="512" height="288" visible="true"]
 [button storage="system_common.ks" target="*records_cg_expand" graphic=&f.april_record_cg_file folder="bgimage" x="700" y="252" width="512" height="288" fix="false" name="archive_cg_expand_button" hint="クリックで大きく表示"]
+[if exp="f.april_record_month == '03'"]
+[iscript]
+$(".archive_cg_image, .archive_cg_expand_button").css("object-fit", "contain");
+[endscript]
+[endif]
+[if exp="f.april_record_month == '02'"]
+[iscript]
+$(".archive_cg_image, .archive_cg_expand_button").css("object-fit", "contain");
+[endscript]
+[endif]
+[if exp="f.april_record_month == '01'"]
+[iscript]
+$(".archive_cg_image, .archive_cg_expand_button").css("object-fit", "contain");
+[endscript]
+[endif]
 [ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="555" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
 [endif]
 [else]
@@ -1015,7 +2382,162 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [else]
 [ptext layer="1" name="archive_text" text=&f.april_record_detail_title x="700" y="172" size="20" bold="true" color="0x305332" edge="" width="500"]
 [ptext layer="1" name="archive_text" text=&f.april_record_detail_meta x="700" y="209" size="13" bold="true" color="0x3B2A1B" edge="" width="510"]
-[if exp="f.april_record_is_september_bad == true"]
+[if exp="f.april_record_is_march == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[if exp="f.april_record_detail_comment != ''"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[endif]
+[elsif exp="f.april_record_is_february_bad == true"]
+[ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="337" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="360" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="383" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="406" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="429" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="452" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="475" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="498" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="535" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="561" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="585" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_february_clear == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_january_bad == true"]
+[ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="337" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="360" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="383" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="406" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="429" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="452" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="475" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="498" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="535" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="561" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="585" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_january_clear == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_december_bad == true"]
+[ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="337" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="360" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="383" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="406" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="429" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="452" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="475" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="498" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="535" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="561" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="585" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_december_clear == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_november_bad == true"]
+[ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="337" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="360" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="383" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="406" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="429" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="452" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="475" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="498" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="535" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="561" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="585" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_november_clear == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_october_bad == true"]
+[ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="310" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="337" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="360" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="383" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="406" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="429" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="452" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="475" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="498" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="535" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="561" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="585" size="14" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_october_clear == true"]
+[ptext layer="1" name="archive_text" text="記録" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body1 x="700" y="278" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body2 x="700" y="304" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body3 x="700" y="330" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body4 x="700" y="356" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body5 x="700" y="382" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body6 x="700" y="408" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body7 x="700" y="434" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_body8 x="700" y="460" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text="抹茶ちゃんのひとこと" x="700" y="511" size="15" bold="true" color="0x70551D" edge="" width="460"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment x="700" y="539" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[ptext layer="1" name="archive_text" text=&f.april_record_detail_comment2 x="700" y="565" size="15" bold="true" color="0x3B2A1B" edge="" width="500"]
+[elsif exp="f.april_record_is_september_bad == true"]
 [ptext layer="1" name="archive_text" text="到達条件" x="700" y="250" size="15" bold="true" color="0x70551D" edge="" width="460"]
 [ptext layer="1" name="archive_text" text=&f.april_record_detail_condition1 x="700" y="275" size="13" bold="true" color="0x3B2A1B" edge="" width="510"]
 [ptext layer="1" name="archive_text" text="記録" x="700" y="318" size="15" bold="true" color="0x70551D" edge="" width="460"]
@@ -1120,8 +2642,13 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [endif]
 [endif]
 [endif]
+[clearfix name="retired_archive_debug"]
+[clearfix name="retired_archive_debug"]
+[clearfix name="retired_archive_debug"]
+[clearfix name="retired_archive_debug"]
+[clearfix name="retired_archive_debug"]
 [glink text="全記録リセット" color="green" font_color="0x3B2A1B" x="760" y="655" width="160" height="38" size="13" bold="true" target="*records_reset_all_confirm" name="archive_action"]
-[glink text="【DEBUG】単月リセット" color="green" font_color="0x3B2A1B" x="930" y="655" width="180" height="38" size="12" bold="true" target="*records_reset_month_confirm" name="archive_action"]
+[clearfix name="retired_archive_debug"]
 [glink text="戻る" color="green" font_color="0xFFF8E4" x="1125" y="655" width="90" height="38" size="15" bold="true" target="*records_back" name="archive_action"]
 [s]
 
@@ -1131,6 +2658,21 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [cm]
 [layermode name="cg_fullscreen_dim" color="0x000000" opacity="170" mode="normal" time="180" wait="true"]
 [button storage="system_common.ks" target="*records_cg_fullscreen_close" graphic=&f.april_record_cg_file folder="bgimage" x="50" y="28" width="1180" height="664" fix="false" name="cg_fullscreen_image" hint="クリックで閉じる"]
+[if exp="f.april_record_month == '03'"]
+[iscript]
+$(".cg_fullscreen_image").css("object-fit", "contain");
+[endscript]
+[endif]
+[if exp="f.april_record_month == '02'"]
+[iscript]
+$(".cg_fullscreen_image").css("object-fit", "contain");
+[endscript]
+[endif]
+[if exp="f.april_record_month == '01'"]
+[iscript]
+$(".cg_fullscreen_image").css("object-fit", "contain");
+[endscript]
+[endif]
 [s]
 
 *records_cg_fullscreen_close
@@ -1163,7 +2705,7 @@ if (f.april_record_month == "09" && f.april_record_tab == "CG") {
 [iscript]
 Object.keys(sf).forEach(function (key) {
   /* Keep TyranoBuilder's cg_view/cg_id state objects intact; clear only this game's collected CG flags. */
-  if (/^(core_bad_|mini_bad_|normal_ch\d+_clear$|cg_(april|may|june|july|august|september)_)/.test(key)) sf[key] = false;
+  if (/^(core_bad_|mini_bad_|normal_ch\d+_clear$|cg_(april|may|june|july|august|september|october|november|december|january|february|march)_|march_end_0[12]_seen$|true_end_seen$)/.test(key)) sf[key] = false;
 });
 [endscript]
 [jump target="*records_display"]
@@ -1201,7 +2743,29 @@ var monthlyRecordKeys = {
   "09": [
     "core_bad_009", "normal_ch09_clear",
     "cg_september_event_01", "cg_september_event_02", "cg_september_event_03", "cg_september_mini_01"
-  ]
+  ],
+  "10": [
+    "core_bad_010", "core_bad_011", "normal_ch10_clear",
+    "cg_october_event_01", "cg_october_event_02", "cg_october_event_03", "cg_october_mini_01", "cg_october_mini_02"
+  ],
+  "11": [
+    "core_bad_012", "core_bad_013", "mini_bad_m04", "mini_bad_m05", "normal_ch11_clear",
+    "cg_november_event_01", "cg_november_event_02", "cg_november_mini_01", "cg_november_mini_02"
+  ],
+  "12": [
+    "core_bad_014", "mini_bad_m06", "mini_bad_m07", "normal_ch12_clear",
+    "cg_december_event_01", "cg_december_event_02", "cg_december_event_03", "cg_december_mini_01", "cg_december_mini_02"
+  ],
+  "01": [
+    "core_bad_015", "mini_bad_m08", "mini_bad_m09", "normal_ch01_clear",
+    "cg_january_event_01", "cg_january_event_02", "cg_january_event_03", "cg_january_mini_01", "cg_january_mini_02"
+  ],
+  "02": [
+    "core_bad_016", "mini_bad_m10", "mini_bad_m11", "normal_ch02_clear",
+    "cg_february_event_01", "cg_february_event_02", "cg_february_event_03", "cg_february_mini_01", "cg_february_mini_02"
+  ],
+  "03": ["core_bad_017", "mini_bad_m12", "mini_bad_m13", "normal_ch03_clear", "march_end_01_seen", "march_end_02_seen", "true_end_seen", "cg_march_event_01", "cg_march_event_02", "cg_march_event_03", "cg_march_event_04", "cg_march_event_05", "cg_march_event_06", "cg_march_event_07", "cg_march_event_08", "cg_march_mini_01", "cg_march_mini_02"]
+
 };
 var selectedMonthKeys = monthlyRecordKeys[f.april_record_month] || [];
 selectedMonthKeys.forEach(function (key) { sf[key] = false; });
@@ -1229,8 +2793,20 @@ selectedMonthKeys.forEach(function (key) { sf[key] = false; });
 [else]
 [jump target="*show_mini_bad"]
 [endif]
+[elsif exp="f.april_records_return == 'march_end'"]
+[jump storage="n03_march.ks" target="*march_ending_menu"]
 [elsif exp="f.april_records_return == 'clear'"]
-[if exp="f.current_clear_month == '09'"]
+[if exp="f.current_clear_month == '02'"]
+[jump storage="n02_february.ks" target="*february_clear_menu"]
+[elsif exp="f.current_clear_month == '01'"]
+[jump storage="n01_january.ks" target="*january_clear_menu"]
+[elsif exp="f.current_clear_month == '12'"]
+[jump storage="n12_december.ks" target="*december_clear_menu"]
+[elsif exp="f.current_clear_month == '11'"]
+[jump storage="n11_november.ks" target="*november_clear_menu"]
+[elsif exp="f.current_clear_month == '10'"]
+[jump storage="n10_october.ks" target="*october_clear_menu"]
+[elsif exp="f.current_clear_month == '09'"]
 [jump storage="n09_september.ks" target="*september_clear_menu"]
 [elsif exp="f.current_clear_month == '08'"]
 [jump storage="n08_august.ks" target="*august_clear_menu"]
@@ -1275,3 +2851,28 @@ f.current_clear_month = "04";
 
 
 
+
+*records_from_march_end
+[clearstack stack="if"]
+[eval exp="f.april_record_screen_open = false; f.april_records_return = 'march_end'; f.april_record_month = '03'; f.april_record_tab = 'CORE'; f.april_record_selected = f.current_march_end || 'core_017'"]
+[jump target="*records_display"]
+
+; Development-only: this deliberately preserves CORE017/CGs/TRUE/saves and all other sf.
+*march_debug_reset_confirm
+[clearstack stack="if"]
+[if exp="window.MarchEnding.ENABLE_MARCH_ED_DEBUG_RESET !== true"]
+[jump target="*records_display"]
+[endif]
+[cm]
+[free layer="1" name="archive_text"]
+[ptext layer="1" name="archive_text" text="1周目ED到達フラグだけを解除します。失敗の記録・CG・セーブデータは削除しません。続けますか？" x="150" y="270" size="22" bold="true" color="0x3B2A1B" edge="" width="980"]
+[glink text="解除する" color="green" font_color="0x3B2A1B" x="350" y="365" width="260" height="60" size="20" bold="true" target="*march_debug_reset_apply" name="archive_action"]
+[glink text="キャンセル" color="green" font_color="0x3B2A1B" x="670" y="365" width="240" height="60" size="20" bold="true" target="*records_display" name="archive_action"]
+[s]
+
+*march_debug_reset_apply
+[clearstack stack="if"]
+[iscript]
+window.MarchEnding.resetFirstEndingFlag();
+[endscript]
+[jump target="*records_display"]

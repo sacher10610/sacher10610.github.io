@@ -1,0 +1,12 @@
+{
+  "file": "data/sound/se_shop_telephone_ring.wav",
+  "generation": "original deterministic additive synthesis; no sampled recordings",
+  "sample_rate": 44100,
+  "channels": 1,
+  "bits": 16,
+  "duration_seconds": 3.8,
+  "peak_dbfs": -2.38,
+  "rms_dbfs": -11.5,
+  "sha256": "d1d8782b0c80eec67cc912f2662ebf7d348c289684eb89a1afa2b0ccc726bd6e",
+  "audition": "not performed; user will verify in game"
+}
