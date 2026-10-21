@@ -4,16 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#060a14">
-  <meta name="description" content="SACHER10610のゲーム作品。『365日後、抹茶エクレアは世界一になる』9月編まで遊べるブラウザ体験版を公開中。">
-  <meta property="og:title" content="GAME — SACHER10610">
-  <meta property="og:description" content="『365日後、抹茶エクレアは世界一になる』9月編まで遊べるブラウザ体験版を公開中。">
+  <meta name="description" content="失敗を重ねて絆を紡ぐ、ほろ苦スイーツ・ノベルADV。『365日後、抹茶エクレアは世界一になる。』4月から3月まで、全12章をブラウザで遊べます。">
+  <meta property="og:title" content="365日後、抹茶エクレアは世界一になる。 | SACHER10610">
+  <meta property="og:description" content="失敗を重ねて絆を紡ぐ、ほろ苦スイーツ・ノベルADV。あなたと抹茶エクレアちゃんの、一年間を始めましょう。">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://sacher10610.github.io/assets/images/games/365days-eclair/title-screen.webp">
+  <meta property="og:url" content="https://sacher10610.github.io/game/">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:image" content="https://sacher10610.github.io/assets/images/games/365days-eclair/key-visual.webp">
+  <meta property="og:image:alt" content="カフェで頬杖をつく抹茶エクレアちゃんと『365日後、抹茶エクレアは世界一になる。』のタイトル">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://sacher10610.github.io/assets/images/games/365days-eclair/title-screen.webp">
+  <meta name="twitter:image" content="https://sacher10610.github.io/assets/images/games/365days-eclair/key-visual.webp">
+  <link rel="canonical" href="https://sacher10610.github.io/game/">
   <title>GAME | SACHER10610</title>
   <link rel="stylesheet" href="/css/ambient-room.css?v=20260912-1">
   <link rel="stylesheet" href="/css/coming-soon.css?v=20260930-1">
+  <link rel="stylesheet" href="/css/game.css?v=20261021-1">
   <script src="/js/ambient-room.js?v=20260912-1" defer></script>
 </head>
 <body class="coming-page coming-page--game">
@@ -32,41 +37,61 @@
       <p class="game-lead__mode">GAME ARCHIVE</p>
     </section>
 
-    <article class="game-project game-project--eclair" aria-labelledby="eclair-game-title">
-      <section class="coming-status">
-        <p class="game-project__type">BROWSER DEMO / APRIL–MAY</p>
-        <h2 class="coming-status__title" id="eclair-game-title">365日後、抹茶エクレアは世界一になる</h2>
-        <p class="coming-status__sub">ブラウザ版は9月編まで、そのまま遊べます。</p>
-        <p class="game-project__credit">BROWSER VERSION</p>
-        <div class="game-project__actions">
-          <a
-            class="coming-launch coming-launch--play"
-            href="/games/365days-eclair/"
-            aria-label="365日後、抹茶エクレアは世界一になる ブラウザ体験版を遊ぶ"
-          >
-            PLAY IN BROWSER <span aria-hidden="true">→</span>
-          </a>
-        </div>
-        <div class="coming-motif" aria-hidden="true"><span></span><span></span><span></span></div>
-      </section>
+    <article class="eclair-feature" aria-labelledby="eclair-game-title">
+      <figure class="eclair-keyvisual">
+        <img
+          src="/assets/images/games/365days-eclair/key-visual.webp"
+          srcset="/assets/images/games/365days-eclair/key-visual-960.webp 960w, /assets/images/games/365days-eclair/key-visual.webp 1672w"
+          sizes="(min-width: 1440px) 1280px, (min-width: 432px) 90vw, calc(100vw - 2.7rem)"
+          width="1672"
+          height="941"
+          alt="カフェで頬杖をつく抹茶エクレアちゃんと『365日後、抹茶エクレアは世界一になる。』のタイトル"
+          decoding="async"
+          fetchpriority="high"
+        >
+      </figure>
 
-      <div class="game-gallery" aria-label="365日後、抹茶エクレアは世界一になる ゲーム画面">
-        <figure class="game-gallery__hero">
-          <img
-            src="/assets/images/games/365days-eclair/title-screen.webp"
-            width="1920"
-            height="1080"
-            alt="抹茶エクレア専門店を背景にしたゲームのタイトル画面"
-            decoding="async"
-            fetchpriority="high"
-          >
-        </figure>
+      <header class="eclair-intro">
+        <div>
+          <p class="eclair-eyebrow">NOVEL ADV / APRIL–MARCH</p>
+          <h2 id="eclair-game-title">365日後、抹茶エクレアは世界一になる。</h2>
+          <p class="eclair-availability">4月から3月まで、全12章をブラウザで遊べます。</p>
+        </div>
+        <a class="coming-launch eclair-play" href="/games/365days-eclair/">
+          ブラウザで遊ぶ <span aria-hidden="true">→</span>
+        </a>
+      </header>
+
+      <p class="eclair-tagline">「失敗を重ねて絆を紡ぐ、ほろ苦スイーツ・ノベルADV」</p>
+
+      <div class="eclair-content">
+        <section class="eclair-story" aria-labelledby="eclair-story-title">
+          <h3 id="eclair-story-title">物語</h3>
+          <p>ある日、潰れかけの小さなお菓子屋さんに、異世界から女の子が降ってきた。<br>彼女の名前は「抹茶エクレアちゃん」。</p>
+          <p>どうやら女神様と、とんでもない約束をしてしまったらしい。</p>
+          <p class="eclair-promise">「一年以内に、抹茶エクレアを世界一にする！」</p>
+          <p>……いや、無理では？</p>
+        </section>
+
+        <section class="eclair-features" aria-labelledby="eclair-features-title">
+          <h3 id="eclair-features-title">ゲームの特徴</h3>
+          <ul>
+            <li>選択肢で物語が変わる、死に覚え型ノベルADV</li>
+            <li>個性豊かなキャラクターたちとの、にぎやかなお菓子屋さんの日常</li>
+            <li>コミカルな失敗から、ちょっと考えさせられる結末まで、多彩なBAD END</li>
+            <li>4月から3月まで、季節とともに進む一年間の物語</li>
+            <li>イベントCGやオリジナル楽曲で彩る、笑いと感動のストーリー</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="eclair-scenes" aria-label="ゲーム画面">
         <figure>
           <img
             src="/assets/images/games/365days-eclair/scene-01.webp"
             width="1920"
             height="1080"
-            alt="抹茶エクレアと謎の人物が出会うゲーム画面"
+            alt="異世界で女神様と話す抹茶エクレアちゃんのゲーム画面"
             loading="lazy"
             decoding="async"
           >
@@ -76,50 +101,34 @@
             src="/assets/images/games/365days-eclair/scene-02.webp"
             width="1920"
             height="1080"
-            alt="抹茶エクレアが店内で会話するゲーム画面"
+            alt="抹茶エクレアちゃんがお菓子屋さんで会話するゲーム画面"
             loading="lazy"
             decoding="async"
           >
         </figure>
       </div>
-    </article>
 
-    <article class="game-project game-project--manzoku" aria-labelledby="manzoku-game-title">
-      <section class="coming-status">
-        <p class="game-project__type">NOW OPEN / 人工無能 GAME</p>
-        <h2 class="coming-status__title" id="manzoku-game-title">満足教 ONLINE</h2>
-        <p class="coming-status__sub">あなたの言葉が、やがて教義になります。</p>
-        <p class="game-project__credit">BUILT WITH CODEX / EXTERNAL SITE</p>
-        <a
-          class="coming-launch"
-          href="https://manzoku-online.sacher-10.chatgpt.site/"
-          aria-label="満足教 ONLINEへ移動"
-        >
-          ENTER THE CHURCH <span aria-hidden="true">→</span>
+      <section class="eclair-invitation" aria-label="一年間の物語を始める">
+        <p>何度間違えても、明日はまた作れる。</p>
+        <p>あなたと抹茶エクレアちゃんの、一年間を始めましょう。</p>
+        <a class="coming-launch eclair-play" href="/games/365days-eclair/">
+          ブラウザで遊ぶ <span aria-hidden="true">→</span>
         </a>
-        <div class="coming-motif" aria-hidden="true"><span></span><span></span><span></span></div>
       </section>
 
-      <a
-        class="game-preview"
-        href="https://manzoku-online.sacher-10.chatgpt.site/"
-        aria-label="満足教 ONLINEのリンクプレビューからゲームへ移動"
-      >
-        <img
-          class="game-preview__image"
-          src="https://manzoku-online.sacher-10.chatgpt.site/og.png"
-          width="1200"
-          height="630"
-          alt="満足教 ONLINEのリンクプレビュー"
-          loading="lazy"
-          decoding="async"
-          referrerpolicy="no-referrer"
-        >
-        <span class="game-preview__meta" aria-hidden="true">
-          <span>LINK PREVIEW</span>
-          <span>OPEN GAME →</span>
-        </span>
-      </a>
+      <section class="eclair-ai" aria-labelledby="eclair-ai-title">
+        <h3 id="eclair-ai-title">AIの使用について</h3>
+        <dl>
+          <div>
+            <dt>AIの使用範囲</dt>
+            <dd>全般。立ち絵・イベントCG・背景画像・動画・BGM・スクリプト作成に生成AIを使用、シナリオの会話部分にAIを使用</dd>
+          </div>
+          <div>
+            <dt>使用AI</dt>
+            <dd>ChatGPT・Grok・Suno・Seedance2.0</dd>
+          </div>
+        </dl>
+      </section>
     </article>
   </main>
 </body>

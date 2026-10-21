@@ -1,0 +1,241 @@
+/* GAME archive: give the supplied key visual and story room to breathe. */
+.coming-page--game {
+  --game-matcha: #bdcfa7;
+  --game-gold: #ddc495;
+  --game-body: #d2d7d6;
+}
+
+.coming-page--game .coming-main {
+  display: block;
+  width: min(100%, 90rem);
+  padding-inline: clamp(1.35rem, 5vw, 5rem);
+}
+
+.coming-page--game .game-lead {
+  min-height: 6.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.coming-page--game .game-lead__mode {
+  margin-top: 0.75rem;
+}
+
+.eclair-feature {
+  min-width: 0;
+}
+
+.eclair-keyvisual,
+.eclair-scenes figure {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(221, 196, 149, 0.24);
+  background: var(--ink);
+}
+
+.eclair-keyvisual img,
+.eclair-scenes img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.eclair-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem 2rem;
+  margin-top: clamp(1.75rem, 4vw, 3rem);
+}
+
+.eclair-eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--game-matcha);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  line-height: 1.5;
+}
+
+.eclair-intro h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.15vw, 1.9rem);
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.eclair-availability {
+  margin: 0.75rem 0 0;
+  color: #acb6bd;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
+
+.eclair-play.coming-launch {
+  justify-content: space-between;
+  min-height: 52px;
+  margin-top: 0;
+  padding: 0.9rem 1.4rem;
+  border-color: #849975;
+  background: #223d2d;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.eclair-play.coming-launch span {
+  color: var(--game-gold);
+}
+
+.eclair-play.coming-launch:is(:hover, :focus-visible) {
+  border-color: var(--game-matcha);
+  background: #304f39;
+}
+
+.eclair-play.coming-launch:focus-visible {
+  outline: 2px solid var(--game-gold);
+  outline-offset: 4px;
+}
+
+.eclair-tagline {
+  margin: 2rem 0 0;
+  color: var(--game-gold);
+  font-size: clamp(1rem, 1.45vw, 1.2rem);
+  line-height: 1.9;
+  text-wrap: pretty;
+}
+
+.eclair-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.5rem clamp(2.5rem, 6vw, 6rem);
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(131, 144, 168, 0.24);
+}
+
+.eclair-content h3,
+.eclair-ai h3 {
+  margin: 0 0 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+}
+
+.eclair-story p,
+.eclair-features li {
+  color: var(--game-body);
+  font-size: 0.95rem;
+  line-height: 2.1;
+  overflow-wrap: anywhere;
+}
+
+.eclair-story p {
+  margin: 0 0 1.25rem;
+}
+
+.eclair-story .eclair-promise {
+  color: var(--game-matcha);
+  font-weight: 600;
+}
+
+.eclair-features ul {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.eclair-features li::marker {
+  color: var(--game-matcha);
+}
+
+.eclair-scenes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.5vw, 1.25rem);
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+}
+
+.eclair-invitation {
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+  text-align: center;
+}
+
+.eclair-invitation p {
+  margin: 0 0 0.7rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 2;
+  text-wrap: pretty;
+}
+
+.eclair-invitation p:first-child {
+  color: var(--game-gold);
+}
+
+.eclair-invitation .eclair-play {
+  margin-top: 1.25rem;
+}
+
+.eclair-ai {
+  padding-top: 2rem;
+  border-top: 1px solid rgba(131, 144, 168, 0.24);
+}
+
+.eclair-ai h3 {
+  color: #b8c0c4;
+  font-size: 0.85rem;
+}
+
+.eclair-ai dl {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  color: #a9b4bd;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
+
+.eclair-ai dl > div {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.35rem 1.25rem;
+}
+
+.eclair-ai dt {
+  color: #d2d7d6;
+}
+
+.eclair-ai dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .eclair-intro,
+  .eclair-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eclair-intro > .eclair-play {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 540px) {
+  .eclair-scenes,
+  .eclair-ai dl > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eclair-tagline {
+    margin-top: 1.75rem;
+  }
+
+  .eclair-content {
+    margin-top: 1.75rem;
+    padding-top: 1.75rem;
+  }
+}
