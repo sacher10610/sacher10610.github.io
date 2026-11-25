@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="referrer" content="no-referrer" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Posted Video Gallery</title>
+<meta property="og:title" content="Posted Video Gallery" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f2ec; --bg2:#ece9df; --surface:#fffdf8; --surface2:#f8f5ec;
+    --ink:#1c2430; --ink2:#4a5568; --muted:#7a8494; --line:#ddd6c4;
+    --accent:#1d4e5f; --accent-ink:#fff; --accent-soft:#dcebe9;
+    --gold:#9a7b2d; --shadow:0 10px 30px rgba(28,36,48,.14);
+    --thumb-bg:#e6e1d3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d141b; --bg2:#0a1016; --surface:#141e28; --surface2:#182430;
+      --ink:#e8edf2; --ink2:#b9c4d0; --muted:#8494a5; --line:#2a3a49;
+      --accent:#7fd1c0; --accent-ink:#0d1a1a; --accent-soft:#1b3238;
+      --gold:#d4b36a; --shadow:0 12px 34px rgba(0,0,0,.5);
+      --thumb-bg:#1a2733;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);color:var(--ink);
+    font-family:"Noto Sans JP",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;line-height:1.65}
+  button,[role="button"],select,input{font:inherit}
+  button{min-height:40px}
+  a{color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px 64px}
+
+  header.hero{padding:34px 0 8px}
+  .hero-top{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:18px}
+  h1{font-family:"Noto Serif JP",serif;font-size:clamp(26px,5vw,40px);line-height:1.25;margin:0;font-weight:700;letter-spacing:.02em}
+  h1 .en{display:block;font-family:"Marcellus",serif;font-size:.52em;letter-spacing:.22em;color:var(--accent);font-weight:400;margin-bottom:6px}
+  .hero-meta{text-align:right;font-size:13px;color:var(--ink2)}
+  .hero-meta strong{font-size:22px;color:var(--ink);font-family:"Marcellus",serif;letter-spacing:.04em}
+  .hero-note{margin:14px 0 0;color:var(--ink2);font-size:14px;max-width:760px}
+  .hero-note a{font-weight:700}
+
+  .toolbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 92%, transparent);backdrop-filter:blur(10px);padding:14px 0 10px;margin-top:10px}
+  .toolbar-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 14px}
+  .search input{flex:1;border:0;background:transparent;color:var(--ink);min-height:36px;outline:none;font-size:15px;min-width:0}
+  .search input::placeholder{color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13.5px;font-weight:500}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  .count-line{font-size:13px;color:var(--muted);margin:8px 2px 0}
+
+  section.month{margin-top:26px}
+  .month-head{display:flex;align-items:baseline;gap:12px;margin:0 0 12px}
+  .month-head h2{font-family:"Marcellus","Noto Serif JP",serif;font-size:20px;letter-spacing:.08em;margin:0}
+  .month-head span{font-size:12.5px;color:var(--muted)}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:760px){.grid{grid-template-columns:repeat(2,1fr);gap:20px}}
+  .card{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease, box-shadow .15s ease}
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .thumb-btn{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;text-align:left}
+  .thumb-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .thumb{position:relative;background:var(--thumb-bg);display:block;overflow:hidden;width:100%}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .play-mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .play-mark span{width:64px;height:64px;border-radius:50%;background:rgba(8,16,22,.62);border:1.5px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;transition:transform .15s ease, background .15s ease}
+  .play-mark svg{width:26px;height:26px;fill:#fff;margin-left:3px}
+  .card:hover .play-mark span{background:rgba(8,16,22,.78);transform:scale(1.07)}
+  .badge{position:absolute;background:rgba(10,18,24,.8);color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;letter-spacing:.03em;line-height:1.5}
+  .badge.dur{bottom:8px;right:8px;font-variant-numeric:tabular-nums}
+  .badge.multi{top:8px;left:8px;border-radius:999px;padding:3px 10px}
+  .card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px;flex:1}
+  .card-title{font-family:"Noto Serif JP",serif;font-weight:700;font-size:16.5px;line-height:1.4;word-break:break-word}
+  .card-cap{font-size:13.5px;color:var(--ink2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line;word-break:break-word}
+  .card-date{margin-top:auto;padding-top:8px;font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .empty{display:none;text-align:center;color:var(--muted);padding:48px 16px;font-size:14.5px}
+  .empty.show{display:block}
+
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between}
+
+  /* ---- player modal ---- */
+  .overlay{position:fixed;inset:0;z-index:50;display:none;background:rgba(6,10,14,.94);color:#eef3f6}
+  .overlay.open{display:flex;flex-direction:column}
+  .ov-top{display:flex;align-items:center;gap:10px;padding:10px 14px}
+  .ov-top .spacer{flex:1}
+  .ov-btn{appearance:none;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;font-size:14px;font-weight:600;min-height:44px;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+  .ov-btn:hover{background:rgba(255,255,255,.18)}
+  .ov-btn.primary{background:#7fd1c0;border-color:#7fd1c0;color:#0b1c1c}
+  .ov-btn.primary:hover{background:#97decf}
+  .ov-counter{font-family:"Marcellus",serif;letter-spacing:.1em;font-size:14px;color:#c7d3dc;white-space:nowrap}
+  .ov-scroll{flex:1;overflow-y:auto;min-height:0}
+  .ov-stage{display:flex;align-items:flex-start;justify-content:center;gap:6px;padding:6px 6px 0}
+  .nav-btn{flex:0 0 auto;width:48px;height:48px;margin-top:12vh;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .nav-btn:hover{background:rgba(255,255,255,.2)}
+  .nav-btn:disabled{opacity:.3;cursor:default}
+  .ov-videos{flex:1;min-width:0;max-width:920px;display:flex;flex-direction:column;gap:18px;align-items:center}
+  .ov-videos video{width:100%;max-height:64vh;background:#000;border-radius:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:block}
+  .ov-videos video.portrait{width:auto;max-width:100%}
+  .vid-label{align-self:flex-start;font-size:12.5px;color:#93a5b3;letter-spacing:.06em;margin-bottom:-10px}
+  .vid-box{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .vid-stage{position:relative;width:100%;display:flex;justify-content:center;background:#000;border-radius:8px}
+  .vid-bigplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;border:1.5px solid rgba(255,255,255,.8);background:rgba(8,16,22,.62);cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;z-index:2}
+  .vid-bigplay.show{display:flex}
+  .vid-bigplay:hover{background:rgba(8,16,22,.82)}
+  .vid-bigplay svg{width:28px;height:28px;fill:#fff;margin-left:3px}
+  .vctrl{width:100%;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:5px 10px}
+  .vc-btn{appearance:none;border:0;background:transparent;color:#fff;width:40px;height:40px;min-height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0}
+  .vc-btn:hover{background:rgba(255,255,255,.14)}
+  .vc-btn svg{width:21px;height:21px;fill:currentColor;display:block}
+  .vc-time{font-size:12.5px;color:#c7d3dc;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:.02em}
+  .vc-seek{flex:1;min-width:48px;accent-color:#7fd1c0;height:30px;cursor:pointer;margin:0}
+  .vid-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;width:100%}
+  .vid-note{display:none;width:100%;margin:0;font-size:13px;line-height:1.6;color:#ffd479;background:rgba(255,212,121,.08);border:1px solid rgba(255,212,121,.35);border-radius:8px;padding:8px 12px}
+  .vid-note.show{display:block}
+  .fs-btn{appearance:none;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:7px 16px;cursor:pointer;font-size:13.5px;font-weight:600;min-height:40px;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+  .fs-btn:hover{background:rgba(255,255,255,.18)}
+  .fs-btn svg{width:15px;height:15px;fill:currentColor;flex:0 0 auto}
+  .ov-info{padding:16px 18px calc(20px + env(safe-area-inset-bottom));max-width:920px;margin:0 auto;width:100%}
+  .ov-title{font-family:"Noto Serif JP",serif;font-size:clamp(19px,3.4vw,26px);margin:0;line-height:1.35;word-break:break-word;font-weight:700}
+  .ov-cap{white-space:pre-wrap;font-size:14.5px;color:#c2ced8;margin:10px 0 0;line-height:1.75;word-break:break-word}
+  .ov-meta{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:14px;font-size:13px;color:#93a5b3}
+  @media(max-width:560px){
+    .hero-meta{text-align:left}
+    .nav-btn{width:44px;height:44px;margin-top:8vh}
+    .ov-top{flex-wrap:wrap}
+    .ov-btn{padding:8px 13px;font-size:13.5px}
+    .ov-videos video{max-height:56vh}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-top">
+      <h1><span class="en">VIDEO ARCHIVE</span>投稿動画ギャラリー</h1>
+      <div class="hero-meta">
+        <div><strong id="statPosts">–</strong> 本</div>
+        <div id="statRange">—</div>
+      </div>
+    </div>
+    <p class="hero-note">雑葉（ざつは）／ <a href="https://x.com/sacher10610" target="_blank" rel="noopener">@sacher10610</a> のX投稿動画をまとめたアーカイブです。カードをタップするとその場で再生できます。各動画の「Xで元投稿を見る」から元の投稿へも移動できます。</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <label class="search" aria-label="検索">
+        <span aria-hidden="true">🔍</span>
+        <input id="q" type="search" placeholder="タイトル・キャプションで検索" autocomplete="off">
+      </label>
+      <div class="chips" id="chips" role="group" aria-label="月で絞り込み"></div>
+    </div>
+    <p class="count-line" id="countLine" aria-live="polite"></p>
+  </div>
+
+  <main id="gallery"></main>
+  <p class="empty" id="emptyMsg">条件に合う動画がありません。検索ワードや月の絞り込みを変えてみてください。</p>
+
+  <footer>
+    <span>出典：X（@sacher10610）の投稿。各動画のプレイヤー画面から元の投稿へ移動できます。</span>
+    <span>動画の権利は投稿者に帰属します。</span>
+  </footer>
+</div>
+
+<!-- ===== プレイヤー ===== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="動画プレイヤー">
+  <div class="ov-top">
+    <button class="ov-btn" id="btnClose" type="button">✕ 閉じる</button>
+    <span class="ov-counter" id="ovCounter"></span>
+    <span class="spacer"></span>
+    <a class="ov-btn primary" id="ovXLink" href="#" target="_blank" rel="noopener">Xで元投稿を見る ↗</a>
+  </div>
+  <div class="ov-scroll" id="ovScroll">
+    <div class="ov-stage">
+      <button class="nav-btn" id="btnPrev" type="button" aria-label="前の動画">‹</button>
+      <div class="ov-videos" id="ovVideos"></div>
+      <button class="nav-btn" id="btnNext" type="button" aria-label="次の動画">›</button>
+    </div>
+    <div class="ov-info">
+      <h2 class="ov-title" id="ovTitle"></h2>
+      <p class="ov-cap" id="ovCap"></p>
+      <div class="ov-meta">
+        <span id="ovDate"></span>
+        <span id="ovDur"></span>
+        <span>◀ ▶ キー：前後の動画 ／ Esc：閉じる</span>
+        <span>全画面で見たいときは各動画の「動画を直接開く」から開いてください</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   投稿動画データ（新しい順）
+   { date, postUrl, title, caption, thumb, video, w, h, dur, extraVideos? }
+   ============================================================ */
+const VIDEOS = [{"date":"2026-11-25","postUrl":"https://x.com/sacher10610/status/2125264083104768367","title":"AI猫耳祭り","caption":"趣向錯誤さんこんばんわ。\nウチの、まよいクロネちゃんが、ちょうど猫耳メイドのvtuber設定なのでこれは参加せねばと🐈","thumb":"https://pbs.twimg.com/amplify_video_thumb/2125263354344390656/img/L2EPKwlxqzdZxqxX.jpg","video":"https://video.twimg.com/amplify_video/2125263354344390656/vid/avc1/720x960/ZxW5d3zMg7zZcQrf.mp4?tag=29","w":720,"h":960,"dur":15},{"date":"2026-11-24","postUrl":"https://x.com/sacher10610/status/2125067673344307250","title":"ざこソムリエ","caption":"ざこ判定フラッシュチャレンジ。\n喫茶ベストプレイスのスメカちゃんが挑戦。\nいつも「ざこざこ」言っていますが……","thumb":"https://pbs.twimg.com/amplify_video_thumb/2125066702006403072/img/njR8bIl0__coisxP.jpg","video":"https://video.twimg.com/amplify_video/2125066702006403072/vid/avc1/1280x720/uKM5yOguMjxGwiCF.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-11-23","postUrl":"https://x.com/sacher10610/status/2124837601559613467","title":"ありがとうございます😊","caption":"ちなみにこちらはその元になった動画。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2124837225733189632/img/l5IjVe_qXhLYYv6-.jpg","video":"https://video.twimg.com/amplify_video/2124837225733189632/vid/avc1/1280x704/AzI4QtMo6JLA8UMt.mp4?tag=29","w":1280,"h":704,"dur":15},{"date":"2026-11-21","postUrl":"https://x.com/sacher10610/status/2124007507001778667","title":"失敗生成ウィルス","caption":"AIの暴走で人類滅亡の危機に瀕している現代、という世界線で少女は……","thumb":"https://pbs.twimg.com/amplify_video_thumb/2124006366063038464/img/zzdkOOVhPpx-UDu0.jpg","video":"https://video.twimg.com/amplify_video/2124006366063038464/vid/avc1/1280x720/QlIrUyjZON8hVQhD.mp4?tag=29","w":1280,"h":720,"dur":44},{"date":"2026-11-21","postUrl":"https://x.com/sacher10610/status/2123929143889039366","title":"炎上しそうなパロディ","caption":"九州物産展にやってきた配信者ちゃん。\n今日はなにをやらかす？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2123929021608235008/img/CICObPt7N1YSKhph.jpg","video":"https://video.twimg.com/amplify_video/2123929021608235008/vid/avc1/1280x720/w3_pDh2SKa7Vmo19.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-11-19","postUrl":"https://x.com/sacher10610/status/2123408006507573452","title":"匠の米粒アート","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2123407291315892224/img/FYC8WdHeWIKsBJ71.jpg","video":"https://video.twimg.com/amplify_video/2123407291315892224/vid/avc1/1280x720/z_2ItWBJXrD8ZDas.mp4?tag=29","w":1280,"h":720,"dur":35},{"date":"2026-11-07","postUrl":"https://x.com/sacher10610/status/2118863139391566172","title":"MOSQUITO -Collect the blood-","caption":"CapCut Video Studioって初めて使ったのですが、なんかよくわからんうちに動画ができましたｗ\nその動画をメイン素材として、音声、BGMを編集で追加しています。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2118862599542714368/img/K7Izk1NXpuK5B05c.jpg","video":"https://video.twimg.com/amplify_video/2118862599542714368/vid/avc1/1280x720/wmw0lFCI6iKPM359.mp4?tag=29","w":1280,"h":720,"dur":42},{"date":"2026-11-07","postUrl":"https://x.com/sacher10610/status/2118858056994041910","title":"AETHERUN: THE LAST HOPE","caption":"架空映画予告","thumb":"https://pbs.twimg.com/amplify_video_thumb/2118858002073825280/img/_o58vfdH34F9bE1e.jpg","video":"https://video.twimg.com/amplify_video/2118858002073825280/vid/avc1/1280x720/CD4_DfMbACC-ZJoB.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-11-04","postUrl":"https://x.com/sacher10610/status/2117940699522007121","title":"ゲームでやりがちなこと","caption":"よくやるでしょ？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2117939823122247680/img/m3lOJbJSvqBgkZvT.jpg","video":"https://video.twimg.com/amplify_video/2117939823122247680/vid/avc1/1280x720/51faFXCqcc4EXooD.mp4?tag=29","w":1280,"h":720,"dur":45},{"date":"2026-11-04","postUrl":"https://x.com/sacher10610/status/2117923377604436029","title":"女神のひととき","caption":"ある街の誕生、そして現代へ\nそんな長い年月、歴史さえも\n悠久の時を生きる女神にとっては\n一瞬の出来事なのだろう","thumb":"https://pbs.twimg.com/amplify_video_thumb/2117922923763896320/img/RzxQ-t8YJUHLbOj-.jpg","video":"https://video.twimg.com/amplify_video/2117922923763896320/vid/avc1/1280x720/u8OYyRcJDfF6BZvL.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-11-01","postUrl":"https://x.com/sacher10610/status/2116896437955088492","title":"","caption":"Codexにやってと言えば大抵のことはやってくれるイメージですｗ","thumb":"https://pbs.twimg.com/amplify_video_thumb/2116896016725319680/img/_8oMavZmHwStxkNX.jpg","video":"https://video.twimg.com/amplify_video/2116896016725319680/vid/avc1/1920x1080/Zot_K9vd_bx9fYrJ.mp4?tag=29","w":1920,"h":1080,"dur":28},{"date":"2026-10-31","postUrl":"https://x.com/sacher10610/status/2116349440055525488","title":"疾走ハロウィンナイト！","caption":"今宵はハロウィンナイト！\n何をしてもOKだと勘違いしている迷惑が、またここにひとり……","thumb":"https://pbs.twimg.com/amplify_video_thumb/2116334421079134208/img/fquXBJ1bE011MBSV.jpg","video":"https://video.twimg.com/amplify_video/2116334421079134208/vid/avc1/1280x720/bt-WwjQOItI1tkXZ.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-10-31","postUrl":"https://x.com/sacher10610/status/2116319238151676246","title":"ハロウィンのエーテル","caption":"ハロウィンをテーマに、アニメものでは初めて長めの動画を作成しました。キャラデザや背景がコロコロ変わっちゃっているので、そのあたりは今後の課題ですね💦\n今回は雰囲気重視ということでｗ","thumb":"https://pbs.twimg.com/amplify_video_thumb/2116187676659605504/img/99XDBlJzHRcXcSrk.jpg","video":"https://video.twimg.com/amplify_video/2116187676659605504/vid/avc1/1280x720/hbR4yS8ltzsuWgoj.mp4?tag=29","w":1280,"h":720,"dur":190},{"date":"2026-10-31","postUrl":"https://x.com/sacher10610/status/2116304142931275800","title":"ルシ王の帰還","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2116250435677986816/img/DsLUjQD6qFznoDW-.jpg","video":"https://video.twimg.com/amplify_video/2116250435677986816/vid/avc1/1280x720/LK-ZxsdvVCPgqz6m.mp4?tag=29","w":1280,"h":720,"dur":31},{"date":"2026-10-29","postUrl":"https://x.com/sacher10610/status/2115594469068152995","title":"指パッチンの極み","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2115562485852012544/img/lo7kuy7USbkVK4h5.jpg","video":"https://video.twimg.com/amplify_video/2115562485852012544/vid/avc1/1280x720/kGiQNTw7Vr3SMbri.mp4?tag=29","w":1280,"h":720,"dur":16},{"date":"2026-10-28","postUrl":"https://x.com/sacher10610/status/2115224524589342877","title":"お給料日の舞","caption":"今月もお給料日がやってきた💰️","thumb":"https://pbs.twimg.com/amplify_video_thumb/2115080517972594689/img/7ytxbnnctS72zGmz.jpg","video":"https://video.twimg.com/amplify_video/2115080517972594689/vid/avc1/1280x720/yQm7zDSJZgC0xoy8.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-10-26","postUrl":"https://x.com/sacher10610/status/2114698772915859646","title":"ガソスタあるある","caption":"今回のテーマ：ふざけた注文","thumb":"https://pbs.twimg.com/amplify_video_thumb/2114696696257236992/img/lFoxIXyrRWN3JOtg.jpg","video":"https://video.twimg.com/amplify_video/2114696696257236992/vid/avc1/1280x720/PKYz38VhIR9lyQPh.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-10-26","postUrl":"https://x.com/sacher10610/status/2114520567315640400","title":"口に出して言ってみたいセリフ","caption":"某vtuberのモノマネをする某vtuberのモノマネをするルミナス","thumb":"https://pbs.twimg.com/amplify_video_thumb/2114520054343806976/img/knC80kOpif84gZf7.jpg","video":"https://video.twimg.com/amplify_video/2114520054343806976/vid/avc1/1280x720/fdHVtI7tJVHF6FTO.mp4?tag=29","w":1280,"h":720,"dur":16},{"date":"2026-10-16","postUrl":"https://x.com/sacher10610/status/2110943709923774810","title":"はやく！　堀田さん！","caption":"息抜きに作ったネタ動画です。なんかスンマセン🤣\n登場人物：堀田さん（陰キャのオタク女子）、丸保井（陽キャのいじめっこ）、浜井お兄（堀田さんの幼馴染のヤンキー）、龍（ろん。留学生。舎弟）","thumb":"https://pbs.twimg.com/amplify_video_thumb/2110943348018364416/img/1srAsJXVYrn5KPG_.jpg","video":"https://video.twimg.com/amplify_video/2110943348018364416/vid/avc1/1280x720/5-J1amM_q9evlINf.mp4?tag=29","w":1280,"h":720,"dur":16},{"date":"2026-10-12","postUrl":"https://x.com/sacher10610/status/2109539567992787029","title":"覆水盆に返らず","caption":"パルクール女子のスメカちゃん。\nコーラ片手に走り出す！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2109538968396300288/img/1DTHoFVJI72bfI3J.jpg","video":"https://video.twimg.com/amplify_video/2109538968396300288/vid/avc1/1280x720/iiL9xhzfXeX272Pw.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-10-12","postUrl":"https://x.com/sacher10610/status/2109494266607391193","title":"次元境界実験","caption":"まぁまぁムリがあると感じました。\n使えるところだけ切り貼りしてなんとか💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2109491062050062336/img/dJSUniuldlU12thh.jpg","video":"https://video.twimg.com/amplify_video/2109491062050062336/vid/avc1/1280x720/Lm3aocnNa98nv29i.mp4?tag=29","w":1280,"h":720,"dur":16},{"date":"2026-10-12","postUrl":"https://x.com/sacher10610/status/2109433876539924932","title":"口に出して言ってみたいセリフ","caption":"ユーチューバーがよく言っているアレｗ","thumb":"https://pbs.twimg.com/amplify_video_thumb/2109423859791523840/img/EXB8cawjpbiLBBOg.jpg","video":"https://video.twimg.com/amplify_video/2109423859791523840/vid/avc1/1280x720/z54eGLx5GzCPRb4L.mp4?tag=29","w":1280,"h":720,"dur":16},{"date":"2026-10-11","postUrl":"https://x.com/sacher10610/status/2109084758022226394","title":"エーテルと三段重ね","caption":"予定調和と某監督映画的演出","thumb":"https://pbs.twimg.com/amplify_video_thumb/2109084276713234432/img/Q64yIzPljczkgvHG.jpg","video":"https://video.twimg.com/amplify_video/2109084276713234432/vid/avc1/1280x720/Cwa1QSYGGfbAiYio.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-10-10","postUrl":"https://x.com/sacher10610/status/2108913945805472191","title":"365日後、抹茶エクレアは世界一になる。","caption":"抹茶ちゃんのノベルゲームですが、予告しておりました通り、6ヶ月目となる9月まで実装しましたので公開しました✨✨\nブラウザアプリなので、スマホでも遊べますのでぜひ。\nhttps://sacher10610.github.io/games/365days-eclair/\n※PR用にちょっと手の込んだvtuberの切り抜き風動画を作成してみました😊","thumb":"https://pbs.twimg.com/amplify_video_thumb/2108913453238984704/img/B9bnVMmBTnCWIw1t.jpg","video":"https://video.twimg.com/amplify_video/2108913453238984704/vid/avc1/1920x1080/ELGTMJlaXPdkN5MS.mp4?tag=29","w":1920,"h":1080,"dur":251},{"date":"2026-10-09","postUrl":"https://x.com/sacher10610/status/2108346704827183142","title":"ザンネットちるこ 第10回","caption":"皆様に愛されて……いるかはわかりませんが第10回✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2108314300637196288/img/x7xmoQa515t7pri_.jpg","video":"https://video.twimg.com/amplify_video/2108314300637196288/vid/avc1/1280x720/JYAF7AFB63QdPMTY.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-10-08","postUrl":"https://x.com/sacher10610/status/2107984319306244463","title":"365日後、抹茶エクレアは世界一になる","caption":"現在12ヶ月中、前半の山場となる6ヶ月目を制作中です。\n現在は2ヶ月目まで遊べる状態で公開しておりますが、6ヶ月目が完成したらそこまで公開する予定です✨\nhttps://sacher10610.github.io/games/365days-eclair/","thumb":"https://pbs.twimg.com/amplify_video_thumb/2107854626070646784/img/ICXSrUuUXVDzwtU6.jpg","video":"https://video.twimg.com/amplify_video/2107854626070646784/vid/avc1/720x1280/OeG1kFb5SFdeER-c.mp4?tag=29","w":720,"h":1280,"dur":14},{"date":"2026-10-07","postUrl":"https://x.com/sacher10610/status/2107621936561823818","title":"ルミナス・ゲートキーパー","caption":"今回のテーマ：拙者の最近の悩み\nCodexで作成。架空のvtuber風動画。\n純潔の魔法使い（30代DT・自称DTM）。超イケボのバ美肉vtuberって設定です。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2107598425378492416/img/2KaAHxe8v-5YGtyh.jpg","video":"https://video.twimg.com/amplify_video/2107598425378492416/vid/avc1/1920x1080/LzLxG_U3kZra_RSn.mp4?tag=29","w":1920,"h":1080,"dur":45},{"date":"2026-10-04","postUrl":"https://x.com/sacher10610/status/2106534767529488666","title":"残念院さんとピー音","caption":"最近ピー音が気になるお年頃の残念院さんだが……","thumb":"https://pbs.twimg.com/amplify_video_thumb/2106383714779574272/img/0L7RXDkTni2YkFuM.jpg","video":"https://video.twimg.com/amplify_video/2106383714779574272/vid/avc1/1280x720/1b0bGJCcmzUrgsuj.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-10-03","postUrl":"https://x.com/sacher10610/status/2106172384931721443","title":"なんで送れないの？","caption":"FAXしたのに、送ったはずの紙が出てきちゃう！\n機械音痴の勘違いｗ","thumb":"https://pbs.twimg.com/amplify_video_thumb/2106039105163505664/img/xvZwaTTYSuMMUbet.jpg","video":"https://video.twimg.com/amplify_video/2106039105163505664/vid/avc1/720x1280/b_sTDlGMEal0rkvq.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-30","postUrl":"https://x.com/sacher10610/status/2105118833610793341","title":"虚数解のレゾナンス　～夜明けのデコード～","caption":"852話さんの「JIZURA」を使用して、リリックビデオを作成してみました。\n日頃ネタ動画しか作成していないのでMV難しい……💦\n楽曲：Suno　字幕：JIZURA","thumb":"https://pbs.twimg.com/amplify_video_thumb/2105118205706661888/img/eUzoA6CsIszsWMyn.jpg","video":"https://video.twimg.com/amplify_video/2105118205706661888/vid/avc1/1280x720/RUpifwZ8D1mJVBIO.mp4?tag=29","w":1280,"h":720,"dur":228},{"date":"2026-09-30","postUrl":"https://x.com/sacher10610/status/2105085216675250490","title":"まちがいFAX","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2105006690525663233/img/DBveaXeSJo28vwai.jpg","video":"https://video.twimg.com/amplify_video/2105006690525663233/vid/avc1/720x1280/erH-V3MbG4-aLqs2.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-27","postUrl":"https://x.com/sacher10610/status/2103998055104090419","title":"午前3：00の自販機","caption":"チャッピーに私が好きそうな動画考えてって頼んだら、よくわからないのができました……。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2103883318790127616/img/d9TvPJwItUVHQ0Y2.jpg","video":"https://video.twimg.com/amplify_video/2103883318790127616/vid/avc1/1280x720/L-stlHnkpQgZCa-v.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-26","postUrl":"https://x.com/sacher10610/status/2103635665439322611","title":"魔改造のエーテル","caption":"今回のテーマ：レーザーポインター","thumb":"https://pbs.twimg.com/amplify_video_thumb/2103528255517347840/img/3p6e9qu70XGsTwoY.jpg","video":"https://video.twimg.com/amplify_video/2103528255517347840/vid/avc1/1280x720/67aB2uKeabsNr9pQ.mp4?tag=29","w":1280,"h":720,"dur":17},{"date":"2026-09-25","postUrl":"https://x.com/sacher10610/status/2103273275555971511","title":"（白い）悪魔的発想！","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2103151155148996608/img/Y_h_qjE0KsFAj8sa.jpg","video":"https://video.twimg.com/amplify_video/2103151155148996608/vid/avc1/720x1280/7VHa7dTiK2AZ1cpd.mp4?tag=29","w":720,"h":1280,"dur":41},{"date":"2026-09-24","postUrl":"https://x.com/sacher10610/status/2102910891838840863","title":"形而上学の唄","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2102760156803293184/img/FCUvsFdk3VZ101bR.jpg","video":"https://video.twimg.com/amplify_video/2102760156803293184/vid/avc1/720x1280/ShpOOe_lbenMUh18.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-23","postUrl":"https://x.com/sacher10610/status/2102593798966788344","title":"ザンネットちるこ 第9回","caption":"まんぞくちゃれんじ — ひきだす、きみのまんぞく／まんぞくちゃれんじは、お子さまのしょうにんよっきゅうをくすぐり、まんぞくへとつなげます。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2102426106641203200/img/xYLsfwpC6yWwqvRI.jpg","video":"https://video.twimg.com/amplify_video/2102426106641203200/vid/avc1/1280x720/NbszebggGFUaYqU9.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-23","postUrl":"https://x.com/sacher10610/status/2102548501246697738","title":"電車で碁","caption":"架空の映画の予告PV。\nオリるか…　ウつか。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2102490152845398016/img/dqkHawptBxT-_6Jk.jpg","video":"https://video.twimg.com/amplify_video/2102490152845398016/vid/avc1/1280x720/ws1Mlyj9ehhZZGU-.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-22","postUrl":"https://x.com/sacher10610/status/2102186112747979001","title":"魔改造のエーテル","caption":"今回のテーマ：たこ焼き器","thumb":"https://pbs.twimg.com/amplify_video_thumb/2102060198584315904/img/4iEShJhQ9K37prv9.jpg","video":"https://video.twimg.com/amplify_video/2102060198584315904/vid/avc1/1280x720/_9MQSxLg6qVnp7oX.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-21","postUrl":"https://x.com/sacher10610/status/2102040788620501170","title":"新忍具「カクレミノ2026（にーまるにーろく）」","caption":"令和の忍具は時代に合わせたテクノロジーを積極採用。\n持ち運びも可能な大きな薄型ディスプレイに、背面に搭載したカメラで写した背景を映し出します！\nこれぞ、現代版の隠れ蓑の術！！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2102040478317494272/img/-tJY3hHhr0BFcNC4.jpg","video":"https://video.twimg.com/amplify_video/2102040478317494272/vid/avc1/1280x720/BkAF0e1fN-Nxq5IV.mp4?tag=29","w":1280,"h":720,"dur":31},{"date":"2026-09-21","postUrl":"https://x.com/sacher10610/status/2101869034761326784","title":"残念院さんのチルレシピ 第2回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2101672809525354496/img/ubpdx9PLIh7cA6Ff.jpg","video":"https://video.twimg.com/amplify_video/2101672809525354496/vid/avc1/1280x720/yxjgNgQMnkJme28G.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-21","postUrl":"https://x.com/sacher10610/status/2101823733585355208","title":"descorrer???","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2101701198944595968/img/igyG1ZRjSLHMLMG5.jpg","video":"https://video.twimg.com/amplify_video/2101701198944595968/vid/avc1/720x1280/W6AtbI3L1I73nUVR.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-20","postUrl":"https://x.com/sacher10610/status/2101436611326247391","title":"新忍法「謎光の術」","caption":"時代の変化とともにどんどん丈が短くなり、布面積の減っていくくノ一装束……。\n画角によってはおセンシ判定、はたまたBANされてしまうかも！\n令和のコンプライアンスに対応するための新忍法！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2101435118409940992/img/DGDe2RkLcdtucBwJ.jpg","video":"https://video.twimg.com/amplify_video/2101435118409940992/vid/avc1/720x1280/GRUcSlu52TNLo8UN.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-19","postUrl":"https://x.com/sacher10610/status/2101144255213486458","title":"教祖マスター！","caption":"※架空ゲームのCMです💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100881669788176384/img/LwcpRLdn4C5xoLdO.jpg","video":"https://video.twimg.com/amplify_video/2100881669788176384/vid/avc1/1280x720/R-k9TJmZ16GH6FLi.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-18","postUrl":"https://x.com/sacher10610/status/2101098950577074264","title":"Autumn, Softly","caption":"エモ目で✨✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100794791755923456/img/drdT-Ho533pLrTsz.jpg","video":"https://video.twimg.com/amplify_video/2100794791755923456/vid/avc1/720x1254/wLY1IhAN3ZCzkKgd.mp4?tag=29","w":720,"h":1254,"dur":15},{"date":"2026-09-18","postUrl":"https://x.com/sacher10610/status/2100781867545059689","title":"ザンネットちるこ 第8回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100772973498261504/img/-S0qSlp_h2QM-iri.jpg","video":"https://video.twimg.com/amplify_video/2100772973498261504/vid/avc1/1280x720/RDLGU4m586ECB4Vr.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-18","postUrl":"https://x.com/sacher10610/status/2100751660431675714","title":"Starbound Quest","caption":"オマケつき✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100604712529924096/img/Gnv2d2vHKWalXYrf.jpg","video":"https://video.twimg.com/amplify_video/2100604712529924096/vid/avc1/1280x720/VUdufZKaPc_JXUn9.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-09-18","postUrl":"https://x.com/sacher10610/status/2100736564313969110","title":"スロカスマリ＠今日も負け？ その1","caption":"スロカスマリちゃんのパチンコ配信です。\nその1なのに、パチスロではなくパチンコ⁉️","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100613521100939264/img/jENpmlEERaB1YKed.jpg","video":"https://video.twimg.com/amplify_video/2100613521100939264/vid/avc1/720x1280/fMC4Iwv-dxHGgQgM.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-17","postUrl":"https://x.com/sacher10610/status/2100374178323173454","title":"テレスの手癖","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2100211079783841792/img/ymCqvdMR55EmyCT-.jpg","video":"https://video.twimg.com/amplify_video/2100211079783841792/vid/avc1/720x1280/kLNdutMUGdvQYiqq.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-09-16","postUrl":"https://x.com/sacher10610/status/2100057085782192381","title":"魔改造のエーテル","caption":"今回のテーマ：魔法少女変身ステッキ","thumb":"https://pbs.twimg.com/amplify_video_thumb/2099960822164570112/img/lop51TySghqnU9yP.jpg","video":"https://video.twimg.com/amplify_video/2099960822164570112/vid/avc1/1280x720/Bm0bGeXXqh0RAwRB.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-16","postUrl":"https://x.com/sacher10610/status/2100011791124148698","title":"ザンネットちるこ 第7回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2099914038432190465/img/gdyIH1hcNpqfBqES.jpg","video":"https://video.twimg.com/amplify_video/2099914038432190465/vid/avc1/1280x720/WLZtoDP69WxcwHrO.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-15","postUrl":"https://x.com/sacher10610/status/2099649397084573866","title":"ひまつぶしのエーテル2","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2099517565550936064/img/eSezVGjjwghta2D6.jpg","video":"https://video.twimg.com/amplify_video/2099517565550936064/vid/avc1/720x1254/afpMoBOO6QnQGpOc.mp4?tag=29","w":720,"h":1254,"dur":15},{"date":"2026-09-14","postUrl":"https://x.com/sacher10610/status/2099332311548334587","title":"視力検査","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2099173035626622976/img/XUtI9mbLNhejgjhi.jpg","video":"https://video.twimg.com/amplify_video/2099173035626622976/vid/avc1/720x1280/hGklCX1Ki7Gv8h7x.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-09-14","postUrl":"https://x.com/sacher10610/status/2099287011102257636","title":"謎理論のエーテル","caption":"今回のテーマ：エーテルちゃんと付き合う方法\nテーマについて議論して発表するよ！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2099150013465333760/img/GOmfgUsdmrKV22nP.jpg","video":"https://video.twimg.com/amplify_video/2099150013465333760/vid/avc1/864x496/Sg1TH4rPVxc2dQtj.mp4?tag=29","w":864,"h":496,"dur":15},{"date":"2026-09-13","postUrl":"https://x.com/sacher10610/status/2098969920130211908","title":"残念院さんのチルレシピ 第1回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098796462587166720/img/McvQ4wc3Y-JPp1ug.jpg","video":"https://video.twimg.com/amplify_video/2098796462587166720/vid/avc1/1280x720/KZlkHmVh_R9RvDAB.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-13","postUrl":"https://x.com/sacher10610/status/2098924622854975566","title":"魔改造のエーテル","caption":"今回のテーマ：キックボード","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098551912354508800/img/dbSwCUxMn3w989ba.jpg","video":"https://video.twimg.com/amplify_video/2098551912354508800/vid/avc1/864x496/qhNfJXB3WW356N6I.mp4?tag=29","w":864,"h":496,"dur":15},{"date":"2026-09-12","postUrl":"https://x.com/sacher10610/status/2098607534060007601","title":"威厳とは","caption":"#残念院さん  ⁨@zannenin⁩","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098429049345626112/img/M2FTqrHuxHx3nQCy.jpg","video":"https://video.twimg.com/amplify_video/2098429049345626112/vid/avc1/720x1280/juS4U_YPrrCbvTDc.mp4?tag=29","w":720,"h":1280,"dur":25},{"date":"2026-09-12","postUrl":"https://x.com/sacher10610/status/2098562242178355705","title":"アリスの泥団子","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098427874391023616/img/EACKO-6RnrTT4ZWA.jpg","video":"https://video.twimg.com/amplify_video/2098427874391023616/vid/avc1/720x1280/pNcqrCUuDjLzA9CJ.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-11","postUrl":"https://x.com/sacher10610/status/2098245146097647631","title":"ザンネットちるこ 第6回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098053720890310656/img/-4OuP-PkphYTJVdy.jpg","video":"https://video.twimg.com/amplify_video/2098053720890310656/vid/avc1/1280x720/-vKN_yIlxl9k_JpS.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-11","postUrl":"https://x.com/sacher10610/status/2098199846348087728","title":"魔改造のエーテル","caption":"今回のテーマ：目覚まし時計","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098050914213081088/img/LO6ADMEYeP_kJIWU.jpg","video":"https://video.twimg.com/amplify_video/2098050914213081088/vid/avc1/1280x720/FaBoKzBTPEEakc4Z.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-11","postUrl":"https://x.com/sacher10610/status/2098083762924077505","title":"","caption":"ゆりちゃんの、ちょっとしたイメージビデオみたいなんを短いですが作成してみました🎶","thumb":"https://pbs.twimg.com/amplify_video_thumb/2098083290796421121/img/7gf9-QmbjKQwy4b-.jpg","video":"https://video.twimg.com/amplify_video/2098083290796421121/vid/avc1/1280x720/M0cXv3fEPZVEks_O.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-10","postUrl":"https://x.com/sacher10610/status/2097988454777041245","title":"深夜の残念院さん","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097699926125969408/img/1yaebR5yjPevPnhU.jpg","video":"https://video.twimg.com/amplify_video/2097699926125969408/vid/avc1/1280x720/PMcn56O2WmLHSPWR.mp4?tag=29","w":1280,"h":720,"dur":28},{"date":"2026-09-10","postUrl":"https://x.com/sacher10610/status/2097837458134282248","title":"ひまつぶしのエーテル","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097732027151962113/img/pe61k-JDRsPPMds4.jpg","video":"https://video.twimg.com/amplify_video/2097732027151962113/vid/avc1/720x1280/rJtQPENdqRk2eTej.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-09","postUrl":"https://x.com/sacher10610/status/2097641163347923057","title":"あちらのお客様からです 2","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097314939014971393/img/usyj1xQNcxpCpfBs.jpg","video":"https://video.twimg.com/amplify_video/2097314939014971393/vid/avc1/1280x720/SWHtxCbBtyyR31Xq.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-09-09","postUrl":"https://x.com/sacher10610/status/2097475068817191184","title":"魔改造のエーテル","caption":"今回のテーマ：カレーライス","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097290833825574912/img/RbAa-YFJ1o4aL-Wu.jpg","video":"https://video.twimg.com/amplify_video/2097290833825574912/vid/avc1/1280x720/99hILwWQJz5bkFll.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-08","postUrl":"https://x.com/sacher10610/status/2097127782648086705","title":"ザンネットちるこ 第5回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097046440795353088/img/s66lhqBUgbpDlqxo.jpg","video":"https://video.twimg.com/amplify_video/2097046440795353088/vid/avc1/1280x720/zlqF1735L9hCI4sI.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-08","postUrl":"https://x.com/sacher10610/status/2097112683090714958","title":"謎理論のエーテル","caption":"今日のテーマ：深夜のカップヌードルがおいしすぎなワケ\nテーマについて議論して発表するよ！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2097024089630429184/img/MziAuz9MGBjGlx3B.jpg","video":"https://video.twimg.com/amplify_video/2097024089630429184/vid/avc1/1280x720/2nU5_fPPKym0y75r.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-07","postUrl":"https://x.com/sacher10610/status/2096974572629442799","title":"必殺技名：背徳書封印式・ダミーグリモワール","caption":"男子高校生、禁断の封印術を発動。\n《背徳書封印式・ダミーグリモワール》\n少年は知らない。封印には代償があることを。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096973537089323008/img/lPTiMz8x84p1sk5t.jpg","video":"https://video.twimg.com/amplify_video/2096973537089323008/vid/avc1/1280x720/bKYHJpycscGCSQKh.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-07","postUrl":"https://x.com/sacher10610/status/2096871100105773437","title":"口に出して言ってみたいセリフ","caption":"今日はテストの返却日。\nさて、結果は……？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096669330536853504/img/AOQ4F2W6FPvCvW3b.jpg","video":"https://video.twimg.com/amplify_video/2096669330536853504/vid/avc1/1280x720/avNUfZbHKBP1m8bz.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-09-07","postUrl":"https://x.com/sacher10610/status/2096862312355549671","title":"","caption":"久々に部屋から出たら、夏の暑さにフルボッコにされたニート猫ちゃん","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096862227798343680/img/3U4oJsmy_cmkwq-l.jpg","video":"https://video.twimg.com/amplify_video/2096862227798343680/vid/avc1/720x1280/QmSG9BOYzIExdamJ.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-09-07","postUrl":"https://x.com/sacher10610/status/2096765394757247403","title":"忙しい人のための残念院さんの演説","caption":"#残念院さん  ⁨@vtuber7144","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096666167616356352/img/BFYy4Q3wbfgIr75M.jpg","video":"https://video.twimg.com/amplify_video/2096666167616356352/vid/avc1/1280x720/8LtAuPei9hQmIaqq.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-07","postUrl":"https://x.com/sacher10610/status/2096750295904895223","title":"謎理論のエーテル","caption":"今回のテーマ：夏のアイスがおいしいワケ\nテーマについて議論して発表するよ！","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096639879136542720/img/FGibDOLvGJmy5I2Y.jpg","video":"https://video.twimg.com/amplify_video/2096639879136542720/vid/avc1/1280x720/VahcnUjzcEob9D59.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-06","postUrl":"https://x.com/sacher10610/status/2096403013975875628","title":"ザンネットちるこ 第4回","caption":"動画生成AI研究コミュ https://discord.com/invite/sora2jp\nhttps://x.com/Vtuber7144/status/2091744306411560988","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096269478904709120/img/hMm-RzsVDGlUfEQy.jpg","video":"https://video.twimg.com/amplify_video/2096269478904709120/vid/avc1/1280x720/OC8RtFy8QZsqfkx-.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-06","postUrl":"https://x.com/sacher10610/status/2096387911038148769","title":"魔改造のエーテル","caption":"今回のテーマ：ドライヤー\n※このシリーズに関しては、キャラ画像とプロンプトのみで作成しており、動画そのものは基本的にポン出しの無編集なので、文字がおかしいのは、そういうものだと割り切ってご了承ください。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2096241677489119232/img/fxxpCI5_Oy0FiTLi.jpg","video":"https://video.twimg.com/amplify_video/2096241677489119232/vid/avc1/1280x720/jMuFfHsV-jAw8f8k.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-05","postUrl":"https://x.com/sacher10610/status/2096070829087879419","title":"ひょこっ","caption":"カワイイに全振り✨✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095895968940240896/img/z_pY_MoPYA99LFHh.jpg","video":"https://video.twimg.com/amplify_video/2095895968940240896/vid/avc1/720x1280/m-XcujQ8XTnOJ1_g.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-05","postUrl":"https://x.com/sacher10610/status/2096025523004567743","title":"魔改造のエーテル","caption":"今回のテーマ：炊飯ジャー\n※このシリーズに関しては、キャラ画像とプロンプトのみで作成しており、動画そのものは基本的にポン出しの無編集なので、文字がおかしいのは、そういうものだと割り切ってご了承ください。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095324835887116288/img/JzeuhY9bUdP1HEyL.jpg","video":"https://video.twimg.com/amplify_video/2095324835887116288/vid/avc1/720x1280/0DSdTNYJwZqt6-fh.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-09-04","postUrl":"https://x.com/sacher10610/status/2095870297325142231","title":"口に出して言ってみたいセリフ","caption":"真剣な面持ちの女の子……\nいったい何が……？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095869786601455617/img/k2u7q5WKdfCa8ooO.jpg","video":"https://video.twimg.com/amplify_video/2095869786601455617/vid/avc1/1280x720/iisliY7-6Cw9sWHZ.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-04","postUrl":"https://x.com/sacher10610/status/2095846709398225317","title":"あちらのお客様からです","caption":"一見すると、よくあるシーンですが……？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095846177824804864/img/n0-gsqpge4Q_ebDP.jpg","video":"https://video.twimg.com/amplify_video/2095846177824804864/vid/avc1/1280x720/WnxU0baM0AdGfQ7f.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-09-04","postUrl":"https://x.com/sacher10610/status/2095678231932244347","title":"ザンネットちるこ 第2回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095325212686614528/img/xfJaLzvphRnd-hlj.jpg","video":"https://video.twimg.com/amplify_video/2095325212686614528/vid/avc1/1280x720/7RLW4yNG2xHHOvk3.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-04","postUrl":"https://x.com/sacher10610/status/2095663137827475941","title":"魔改造のエーテル","caption":"今回のテーマ：セニアカー\n※このシリーズに関しては、キャラ画像とプロンプトのみで作成しており、動画そのものは基本的にポン出しの無編集なので、文字がおかしいのは、そういうものだと割り切ってご了承ください。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095324534257971200/img/kaaU0QFEd5VIoBWV.jpg","video":"https://video.twimg.com/amplify_video/2095324534257971200/vid/avc1/1280x720/xDTH3-A3HPra20HE.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-03","postUrl":"https://x.com/sacher10610/status/2095310006703079572","title":"ザンネットちるこ 第2回","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095308387294781440/img/n6jB4GID1rghqez2.jpg","video":"https://video.twimg.com/amplify_video/2095308387294781440/vid/avc1/1280x720/I37ELlMAT8Prrlrz.mp4?tag=29","w":1280,"h":720,"dur":25},{"date":"2026-09-03","postUrl":"https://x.com/sacher10610/status/2095300749173407765","title":"魔改造のエーテル","caption":"今回のテーマ：鉛筆削り\n※このシリーズに関しては、キャラ画像とプロンプトのみで作成しており、動画そのものは基本的にポン出しの無編集なので、文字がおかしいのは、そういうものだと割り切ってご了承ください。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2095137230717321216/img/R20gqkOof53kAb1L.jpg","video":"https://video.twimg.com/amplify_video/2095137230717321216/vid/avc1/1280x720/1QYGPuuf0QgQNmJ_.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-02","postUrl":"https://x.com/sacher10610/status/2094938357214097432","title":"魔改造のエーテル","caption":"今回のテーマ：スマートフォン\n※このシリーズに関しては、キャラ画像とプロンプトのみで作成しており、動画そのものは基本的にポン出しの無編集なので、文字がおかしいのは、そういうものだと割り切ってご了承ください。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094771101478064129/img/dO7b90erDpYfVkAu.jpg","video":"https://video.twimg.com/amplify_video/2094771101478064129/vid/avc1/1280x720/ocpPi1N3u0jfZdiO.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-09-01","postUrl":"https://x.com/sacher10610/status/2094575973802955026","title":"A106 Steam LABO 魔改造のエーテル","caption":"テーマ：残念院さんアクスタ\nだいぶキャラ混じりがひどい💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094372788576641024/img/vA88R1C5z6h4a_2U.jpg","video":"https://video.twimg.com/amplify_video/2094372788576641024/vid/avc1/1280x720/LS1zrXy2Ebi-aLYP.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-31","postUrl":"https://x.com/sacher10610/status/2094423298180620534","title":"必殺技その1「リミッター解除」","caption":"必殺技その2「自己暗示！　大食いタレント！」\n必殺技と称して、それが有効なのかは別問題🤣","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094422639981060096/img/E5Gj4WBxiWc-b33U.jpg","video":"https://video.twimg.com/amplify_video/2094422639981060096/vid/avc1/1280x720/hVQQxL4HaZORWIuv.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-31","postUrl":"https://x.com/sacher10610/status/2094228683385131157","title":"","caption":"一部の方に需要があるように感じたので、調子に乗って罵倒ラッシュな動画を作成してみました✨✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094082488033587200/img/qJF7tecaFqXu9ANG.jpg","video":"https://video.twimg.com/amplify_video/2094082488033587200/vid/avc1/720x1254/gO9nfvg2Qu-dSrhL.mp4?tag=29","w":720,"h":1254,"dur":14},{"date":"2026-08-31","postUrl":"https://x.com/sacher10610/status/2094213583269687769","title":"魔改造のエーテル","caption":"今回のテーマ：電子レンジ\nSora2時代にちょこっとやってたシリーズをまた再開してみようと思って。なお、参照音声は当ててないので、毎回違います💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094203446241173504/img/sPyV2AMiB_TOgC1A.jpg","video":"https://video.twimg.com/amplify_video/2094203446241173504/vid/avc1/1280x720/OkYCU3vdmf8NAye3.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-30","postUrl":"https://x.com/sacher10610/status/2094067788205941184","title":"","caption":"セリフに含めたいワードをいくつか指定だけして、完全アドリブで喋らせたらちょっと微妙💦\n映像も、唐揚げではなくてフライドチキンやね、これ。\nまぁ、美味しそうではあるが🤤","thumb":"https://pbs.twimg.com/amplify_video_thumb/2094066352768335872/img/ZjLmqevZbSXEbkx4.jpg","video":"https://video.twimg.com/amplify_video/2094066352768335872/vid/avc1/1280x720/xY8OdEiZnqG6zOdZ.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-29","postUrl":"https://x.com/sacher10610/status/2093687576737759380","title":"転生したらチャーシューだった件","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2093687389126557696/img/UOapB-A_gbGKVo9m.jpg","video":"https://video.twimg.com/amplify_video/2093687389126557696/vid/avc1/720x1280/M2k6KRV1SoltNKW8.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-08-29","postUrl":"https://x.com/sacher10610/status/2093674364306895030","title":"口に出して言ってみたいセリフ","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2093673227700858881/img/OOo7Zi5YolQSsj3J.jpg","video":"https://video.twimg.com/amplify_video/2093673227700858881/vid/avc1/1280x720/O8_oW0GfZLyxfWgI.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-29","postUrl":"https://x.com/sacher10610/status/2093373601445708026","title":"架空のパロディ映画予告","caption":"「チャーシューとチョコレート工場」","thumb":"https://pbs.twimg.com/amplify_video_thumb/2093373283559514112/img/y9RrIHcZQPLhMoE_.jpg","video":"https://video.twimg.com/amplify_video/2093373283559514112/vid/avc1/1280x720/AX2rEmBQLTcMgWON.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-28","postUrl":"https://x.com/sacher10610/status/2093351065291002166","title":"","caption":"残念院さんの架空アニメPV。\n「残念院さんtake2」","thumb":"https://pbs.twimg.com/amplify_video_thumb/2093350318214123520/img/dzD6NPviibUAjAuN.jpg","video":"https://video.twimg.com/amplify_video/2093350318214123520/vid/avc1/1280x720/aWy9bHeaNl-ZVLbh.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-28","postUrl":"https://x.com/sacher10610/status/2093126416326164698","title":"","caption":"覚えらんないです。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092978770919698432/img/MvKeonqfsrMUzuXw.jpg","video":"https://video.twimg.com/amplify_video/2092978770919698432/vid/avc1/720x1280/xUTCe-KCqFGq0WjH.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-08-27","postUrl":"https://x.com/sacher10610/status/2092969314395815966","title":"","caption":"満足教の架空の通販番組。\n教祖自らハイテンションな商品紹介✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092968801424072704/img/x0PNJvefyrel0SEa.jpg","video":"https://video.twimg.com/amplify_video/2092968801424072704/vid/avc1/1280x720/HwkvyGVtRGCMl2g3.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-27","postUrl":"https://x.com/sacher10610/status/2092953969417158884","title":"","caption":"架空の映画予告をなんとなく作成してみました。\nポン出しで無編集です。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092953590478647296/img/10BNhmCQJ7Dj4ry3.jpg","video":"https://video.twimg.com/amplify_video/2092953590478647296/vid/avc1/1280x720/MUQeUNy8KX4UGwwC.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-27","postUrl":"https://x.com/sacher10610/status/2092809332165607737","title":"","caption":"Sora2でよく見た蛇口動画を再現してみました。\nSeedance2.0で作成ですが、テロップはダメですね。\nポン出しなんで無編集です。\nちゃんと作るなら、テロップなしで作成して、編集で後付けするべきでしょうね。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092642803625197568/img/pxYpNhsFT8N0fPFT.jpg","video":"https://video.twimg.com/amplify_video/2092642803625197568/vid/avc1/1280x720/wzhN5EDtm76836Sx.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092620359627624849","title":"","caption":"なんとなくGrokで作ってみました。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092619975664304128/img/aCRDrgD9qz5gn0e9.jpg","video":"https://video.twimg.com/amplify_video/2092619975664304128/vid/avc1/752x416/j_j_5sK8e1w4cpnR.mp4?tag=25","w":752,"h":416,"dur":15},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092492237385216328","title":"","caption":"ゴスロリでささやくスメカ。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092317052052942848/img/UCKXjtlnQD3lOg0T.jpg","video":"https://video.twimg.com/amplify_video/2092317052052942848/vid/avc1/720x1280/DmOKmJWx4N-xdA0m.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092431840560963672","title":"キネティックタイポグラフィMV","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092406515194044416/img/5pc2tIuc8Sfr-nOW.jpg","video":"https://video.twimg.com/amplify_video/2092406515194044416/vid/avc1/1280x720/kNCoh3c6zSy3_z3G.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092416737967034538","title":"見慣れた天井","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092316911224967168/img/2nE8lR4_xVod3Wlv.jpg","video":"https://video.twimg.com/amplify_video/2092316911224967168/vid/avc1/720x1280/pKQZ7qiUM5kcMgVk.mp4?tag=29","w":720,"h":1280,"dur":10},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092394090524704903","title":"マコトとペンギン","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092382710706929664/img/CzPz1AJvD1MnhAx2.jpg","video":"https://video.twimg.com/amplify_video/2092382710706929664/vid/avc1/720x1280/-ghzp1ZV5-6ekkbw.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092386545059705051","title":"","caption":"朝、教団本部に到着した教祖。\n挨拶が途中から面倒くさくなる。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092382533707255809/img/8X66RmOR2f_gQy2O.jpg","video":"https://video.twimg.com/amplify_video/2092382533707255809/vid/avc1/1280x720/4P_SFn1dPLRBtbVv.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-26","postUrl":"https://x.com/sacher10610/status/2092320392929226816","title":"","caption":"ボーナスステージで、へなちょこ攻撃を繰り出す教祖。\nなのになぜか豪快に車がぶっこわれるナゾの現象。\n※動画としては色々おかしいのですが、個人的には逆にそれが面白く感じましたので、あえてそのまま。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2092320026594566144/img/uldZi89hWGdD8xgC.jpg","video":"https://video.twimg.com/amplify_video/2092320026594566144/vid/avc1/1280x720/F0huc5Udf_LzAzt0.mp4?tag=29","w":1280,"h":720,"dur":14},{"date":"2026-08-25","postUrl":"https://x.com/sacher10610/status/2092190257127080357","title":"マコトとFPS","caption":"Makoto and FPS","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091923209864269824/img/rknac9mhRL4A1C0Q.jpg","video":"https://video.twimg.com/amplify_video/2091923209864269824/vid/avc1/720x1280/KJQ-qVUhDxreS9Bx.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-08-25","postUrl":"https://x.com/sacher10610/status/2092099654284398633","title":"『A106 Steam LABO』タイムラプス風","caption":"“A106 Steam LABO” Time-Lapse Style","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091923074577002496/img/wT07K56kPUA_Mj1c.jpg","video":"https://video.twimg.com/amplify_video/2091923074577002496/vid/avc1/1280x720/EQShLp2fP_J1Z79e.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-24","postUrl":"https://x.com/sacher10610/status/2091827860000604465","title":"スチームパンク世界の花火","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091537214488608769/img/iz_xlPAzT_m2pygy.jpg","video":"https://video.twimg.com/amplify_video/2091537214488608769/vid/avc1/720x1280/-OzI6pJZhpkBvo09.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-08-24","postUrl":"https://x.com/sacher10610/status/2091722164764356729","title":"ヴァーチャル・インサニティ","caption":"Virtual Insanity\nイラストを動画にしてみました✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091535580715003904/img/-jyxUxtkHnZ4w34D.jpg","video":"https://video.twimg.com/amplify_video/2091535580715003904/vid/avc1/1280x720/Lhtaev-adpe3q4VK.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-23","postUrl":"https://x.com/sacher10610/status/2091359773216374816","title":"『Secret Cat Cafe』","caption":"Lofi chillhopなMVを作成してみました。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091182164348121089/img/mnHPOaUnDoeE3TmE.jpg","video":"https://video.twimg.com/amplify_video/2091182164348121089/vid/avc1/720x1280/ZbPJOeSXKQH7qbUu.mp4?tag=29","w":720,"h":1280,"dur":167},{"date":"2026-08-22","postUrl":"https://x.com/sacher10610/status/2091154748842090856","title":"『Green Temptation』","caption":"フルソングは、リプ欄にSUNOのリンクを貼っておきます🎶","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091154005594722305/img/apg_56Ae4vEQbxB5.jpg","video":"https://video.twimg.com/amplify_video/2091154005594722305/vid/avc1/1280x720/VjDQ_B7WP0SYMEe-.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-22","postUrl":"https://x.com/sacher10610/status/2091072892335534410","title":"ラストワン","caption":"The Last One","thumb":"https://pbs.twimg.com/amplify_video_thumb/2091003181031723008/img/whDyuOmw3dpP_5xL.jpg","video":"https://video.twimg.com/amplify_video/2091003181031723008/vid/avc1/1280x720/9Jany7wBRdISzG4Y.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-21","postUrl":"https://x.com/sacher10610/status/2090710499579085006","title":"","caption":"『A106 Steam LABO』アイドルドラマ。\n記念撮影。\nGemini Omni Flashを使用。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089638274860212224/img/7XUgVbzvK8OGVmQd.jpg","video":"https://video.twimg.com/amplify_video/2089638274860212224/vid/avc1/1280x720/0TrGQWAM6ZmOmKrt.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-20","postUrl":"https://x.com/sacher10610/status/2090348114188112161","title":"","caption":"『A106 Steam LABO』アイドルドラマ。\n巨大装置。\nGemini Omni Flashを使用。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089637941572513792/img/94P6_O4uJ-SilBVH.jpg","video":"https://video.twimg.com/amplify_video/2089637941572513792/vid/avc1/1280x720/qnoNMFrUnVAl7Q3f.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-19","postUrl":"https://x.com/sacher10610/status/2090066530772124119","title":"ちょっと試しに動かしてみました✨","caption":"","thumb":"https://pbs.twimg.com/amplify_video_thumb/2090066352077967360/img/D2bdIOPUgQrxSs5o.jpg","video":"https://video.twimg.com/amplify_video/2090066352077967360/vid/avc1/1280x720/XMJHuyK74F8-iSqu.mp4?tag=29","w":1280,"h":720,"dur":30},{"date":"2026-08-19","postUrl":"https://x.com/sacher10610/status/2089985722476560605","title":"","caption":"『A106 Steam LABO』アイドルドラマ。\nあやしい薬品。\nGemini Omni Flashを使用。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089637635350507520/img/LIhfG9a9GQ7DAJPc.jpg","video":"https://video.twimg.com/amplify_video/2089637635350507520/vid/avc1/1280x720/pdlFGvwFQL7G2i60.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-18","postUrl":"https://x.com/sacher10610/status/2089626784908365912","title":"","caption":"『A106 Steam LABO』アイドルドラマ。\n涙の記者会見。\nGemini Omni Flashを使用。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089624597952106496/img/sNv8OK80M6pJmFNS.jpg","video":"https://video.twimg.com/amplify_video/2089624597952106496/vid/avc1/1280x720/xGaYIyyaZEd1YrXN.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-18","postUrl":"https://x.com/sacher10610/status/2089622702399398212","title":"","caption":"Gemini Omni Flashを使って動画を作成してみました。\n『A106 Steam LABO』の面々。\nエーテルと、助手のアリスとテレス。\nアイドルが彼女らに扮したドラマをイメージ。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089621069535809536/img/ps4_osNweF_Os-7F.jpg","video":"https://video.twimg.com/amplify_video/2089621069535809536/vid/avc1/1280x720/6xQIL44HZS72Qa8t.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-17","postUrl":"https://x.com/sacher10610/status/2089005565964058771","title":"","caption":"バロメッツさんのキャラクター、『月曜日さん』をお借りして、動画を作成してみました。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2089005338452508672/img/sKex_-lRDfDgHtHX.jpg","video":"https://video.twimg.com/amplify_video/2089005338452508672/vid/avc1/1280x720/P1wob4qcABGTc2gT.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-16","postUrl":"https://x.com/sacher10610/status/2088966390690804098","title":"『陰キャの世界征服』","caption":"MV風にしてみました✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2088962544379842560/img/fa2ToyoNqT1IWVLr.jpg","video":"https://video.twimg.com/amplify_video/2088962544379842560/vid/avc1/1280x720/VsfbIvdhpw-r-0fD.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-14","postUrl":"https://x.com/sacher10610/status/2088266321268187430","title":"","caption":"本日公開した『崩壊』テーマの動画を、同じプロンプトでSeedance2.0でも作成してみました。\nだいぶ違いますね。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2088265372424413184/img/_0FWY_cGJFjEYQ5-.jpg","video":"https://video.twimg.com/amplify_video/2088265372424413184/vid/avc1/1280x720/G7CjXfvzt23lSH1T.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-14","postUrl":"https://x.com/sacher10610/status/2088231237014147181","title":"","caption":"MiniMax H3をお試ししてみました。\nテーマは『崩壊』です。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2088230512242597888/img/hYNdKhYOXIzr8Qyp.jpg","video":"https://video.twimg.com/amplify_video/2088230512242597888/vid/avc1/1280x720/RomyIaT8vbxGCyaA.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-08-05","postUrl":"https://x.com/sacher10610/status/2084974984355893314","title":"","caption":"静見おとさんのプロンプトをお借りして、ライブMVを作成してみました。\nすごい臨場感がありますね！\n1回目は実写になってしまったので、プロンプト内に「anime」って追加してもう1回作成してみたらうまくいきました👍","thumb":"https://pbs.twimg.com/amplify_video_thumb/2084973903060054016/img/uPdCQuztZxnNE5u6.jpg","video":"https://video.twimg.com/amplify_video/2084973903060054016/vid/avc1/1280x720/XWI8bp54rMznguDk.mp4?tag=29","w":1280,"h":720,"dur":15,"extraVideos":["https://video.twimg.com/amplify_video/2084974135583916033/vid/avc1/1280x720/awrfAb6XUCs-yuqo.mp4?tag=29"]},{"date":"2026-08-01","postUrl":"https://x.com/sacher10610/status/2083497770783273424","title":"『焼きそばソースだばぁ』","caption":"職場での昼食時にやった実話ベース。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2083497289575018496/img/BIVzNivTdygd8dRh.jpg","video":"https://video.twimg.com/amplify_video/2083497289575018496/vid/avc1/720x1280/nTRJWIq0hFBePhO2.mp4?tag=29","w":720,"h":1280,"dur":20},{"date":"2026-08-01","postUrl":"https://x.com/sacher10610/status/2083488448137306353","title":"","caption":"tsukumoさんからプロンプトをお借りして作成しました。かっこかわいい✨✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2083487205906137088/img/rusf0SxsL8F8-QD0.jpg","video":"https://video.twimg.com/amplify_video/2083487205906137088/vid/avc1/1280x720/gnz4Qoo_K-WAkfXy.mp4?tag=29","w":1280,"h":720,"dur":10},{"date":"2026-08-01","postUrl":"https://x.com/sacher10610/status/2083219131399328114","title":"","caption":"Seedance2.5がリリースされたのでお試しに、TKG動画を作成してみました✨✨\nアニメと実写の融合があまり違和感なくていい感じやと思いました👍","thumb":"https://pbs.twimg.com/amplify_video_thumb/2083212175808892928/img/OPOC43IXK3OGiqxE.jpg","video":"https://video.twimg.com/amplify_video/2083212175808892928/vid/avc1/720x1280/DSCFTU081Aaiynwd.mp4?tag=29","w":720,"h":1280,"dur":15},{"date":"2026-07-31","postUrl":"https://x.com/sacher10610/status/2083024853679177928","title":"『意識がデジタル世界へ沈み込んでいく瞬間』","caption":"以前にSora2で作成したものを、チャッピーに分析させて再構成し、新たに作り直してみました。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2082953277340286976/img/sSiEvDiOEoJKF6E1.jpg","video":"https://video.twimg.com/amplify_video/2082953277340286976/vid/avc1/1280x720/g5u1TBayiDpcVX32.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-07-31","postUrl":"https://x.com/sacher10610/status/2082964455659303308","title":"","caption":"ウチのチャッピーに「君が見たいアニメ動画のプロンプトを作って」って無茶ぶりしたら、こうなりました。\n環境依存、ガチャ感もあるので、たぶんみんな違う結果になると思います✨✨","thumb":"https://pbs.twimg.com/amplify_video_thumb/2082872466855342080/img/iYRO6DbEB-b4fnPa.jpg","video":"https://video.twimg.com/amplify_video/2082872466855342080/vid/avc1/1280x720/GEih4ozZl0-59BLm.mp4?tag=29","w":1280,"h":720,"dur":15},{"date":"2026-07-29","postUrl":"https://x.com/sacher10610/status/2082254783130575053","title":"『心まで、デジタルにはならない』","caption":"便利さが行き着き、仕事も外出も、自室から一歩も動かずに済む近未来。\n8月16日、壮年の男性は若い浴衣姿のアバターとなり、仮想空間の灯籠流しへ参加します。\nすべてがデジタルになった世界で、それでも残り続ける祈りや別れのかたちを、台詞を使わず30秒の映像に込めました。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2082204297362821120/img/KDSJkIDkDqTR_kDq.jpg","video":"https://video.twimg.com/amplify_video/2082204297362821120/vid/avc1/1280x720/t6Z-fscoyk56ZZVn.mp4?tag=29","w":1280,"h":720,"dur":30},{"date":"2026-07-10","postUrl":"https://x.com/sacher10610/status/2075384515426689273","title":"","caption":"KnRocoさんのプロンプトを参考にしてエフェクト付きのダンス動画を作成してみました。\n元動画が良すぎて、なかなか難しいですね💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2075313877563424768/img/57jYZ33qY6XsBL7o.jpg","video":"https://video.twimg.com/amplify_video/2075313877563424768/vid/avc1/1280x720/vwO1oQ1t0B0Qar1Q.mp4?tag=28","w":1280,"h":720,"dur":15},{"date":"2026-07-06","postUrl":"https://x.com/sacher10610/status/2073913573726965765","title":"","caption":"KnRocoさんのプロンプトをお借りしました。ありがとうございます。\n静見おと(@otosa_vt)さんがアップされていた動画を拝見して、やってみたくなりました✨\nとてもキュートに仕上がりますね💚","thumb":"https://pbs.twimg.com/amplify_video_thumb/2073913497524834304/img/NyL67jOoIL2Ezdl8.jpg","video":"https://video.twimg.com/amplify_video/2073913497524834304/vid/avc1/1280x720/MclRIeM96_6PB_gI.mp4?tag=28","w":1280,"h":720,"dur":15},{"date":"2026-06-30","postUrl":"https://x.com/sacher10610/status/2071939829999485425","title":"Grokで動画にしてみました👍","caption":"字幕は残っちゃってますけど、雰囲気だけ。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2071939782310060032/img/lR5UNvKPNaSY2vnH.jpg","video":"https://video.twimg.com/amplify_video/2071939782310060032/vid/avc1/736x400/nEwQ0FXd4hEYdXIg.mp4?tag=25","w":736,"h":400,"dur":6},{"date":"2026-06-29","postUrl":"https://x.com/sacher10610/status/2071428449743372432","title":"","caption":"（架空の）外国人向けの日本語学校。\n今日覚える言葉は？","thumb":"https://pbs.twimg.com/amplify_video_thumb/2071377264642805760/img/0SB8HwaaA9zkOky7.jpg","video":"https://video.twimg.com/amplify_video/2071377264642805760/vid/avc1/1280x720/orh6kNbeEwUeBExR.mp4?tag=28","w":1280,"h":720,"dur":15},{"date":"2026-06-28","postUrl":"https://x.com/sacher10610/status/2071066053237739931","title":"","caption":"（架空の）外国人向けの日本語学校。\n楽しそう⁉️","thumb":"https://pbs.twimg.com/amplify_video_thumb/2070997427759513600/img/Fh7VBq8SwP4qKr_f.jpg","video":"https://video.twimg.com/amplify_video/2070997427759513600/vid/avc1/1280x720/ZkZZgRg20zt3-I15.mp4?tag=28","w":1280,"h":720,"dur":15},{"date":"2026-06-25","postUrl":"https://x.com/sacher10610/status/2070123966354932132","title":"","caption":"静見おとさんのプロンプトをお借りし、生成した画像をGrokで動かしてみました✨✨\n可愛く出来て嬉しいです。ありがとうございます。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2070123428645085184/img/dC43hty2VeHRngSZ.jpg","video":"https://video.twimg.com/amplify_video/2070123428645085184/vid/avc1/400x736/DZ8KAOIi7pTCDmll.mp4?tag=25","w":400,"h":736,"dur":6},{"date":"2026-06-24","postUrl":"https://x.com/sacher10610/status/2069647693488717831","title":"","caption":"ちょっとGrokで遊んでみました。\n子どもたち、よそ見してると危ないよ💦","thumb":"https://pbs.twimg.com/amplify_video_thumb/2069647521773932544/img/5lcrKELMKezRaTn3.jpg","video":"https://video.twimg.com/amplify_video/2069647521773932544/vid/avc1/480x608/mI2HlGDurB2_8Ljf.mp4?tag=25","w":480,"h":608,"dur":6},{"date":"2026-06-22","postUrl":"https://x.com/sacher10610/status/2069025940785783215","title":"","caption":"Grokに、何も指示ナシで、作成したイラストを放り込んで動画にしてみたら、予想以上に良かったです。\nもし興味が湧いたら、試してみるのもアリかもしれませんね👍","thumb":"https://pbs.twimg.com/ext_tw_video_thumb/2069025915640958976/pu/img/pHePPKxetns0V-i7.jpg","video":"https://video.twimg.com/ext_tw_video/2069025915640958976/pu/vid/avc1/480x608/H9RZR2j6jzwZAp69.mp4?tag=23","w":480,"h":608,"dur":6},{"date":"2026-06-17","postUrl":"https://x.com/sacher10610/status/2067188583023485212","title":"","caption":"怪盗プロンプトで作成したイラストをベースにして、動画を作成してみました✨✨\n可愛く、華やかにできたと自分では思います👍","thumb":"https://pbs.twimg.com/ext_tw_video_thumb/2067188253913202688/pu/img/Gi1lY5FZs0m437z-.jpg","video":"https://video.twimg.com/ext_tw_video/2067188253913202688/pu/vid/avc1/1280x720/WLQbQFERU77Zcn8z.mp4?tag=26","w":1280,"h":720,"dur":15},{"date":"2026-06-17","postUrl":"https://x.com/sacher10610/status/2067085277714387246","title":"","caption":"ウチのエーテルちゃんで作成したイラストを、動画にしたらカッコいいのでは？　と動画にしてみました👍\n思っていたのとチョット乖離がありましたが、コレはコレでかな✨✨","thumb":"https://pbs.twimg.com/ext_tw_video_thumb/2067085204695760896/pu/img/fsI2jJC8sQRfS-fr.jpg","video":"https://video.twimg.com/ext_tw_video/2067085204695760896/pu/vid/avc1/1280x720/sucj-5YFPTCEsT70.mp4?tag=26","w":1280,"h":720,"dur":15},{"date":"2026-06-04","postUrl":"https://x.com/sacher10610/status/2062334124237721733","title":"","caption":"Sora2動画を、seedance2で続きを作れるのかをやってみました。\n継ぎ目はわかっちゃいますが、元動画に忠実な続きは作れますね。\n室内の落雷は演出ってことにしとこう。\nウォーターマークまで再現せんでもいいのだけど。","thumb":"https://pbs.twimg.com/amplify_video_thumb/2062333165327544320/img/oNCLUQenTi1Pcu2E.jpg","video":"https://video.twimg.com/amplify_video/2062333165327544320/vid/avc1/720x1280/3jRUACl9DzbOIztD.mp4?tag=27","w":720,"h":1280,"dur":25}];
+
+const $ = s => document.querySelector(s);
+const galleryEl = $('#gallery'), emptyEl = $('#emptyMsg'), countEl = $('#countLine');
+const MONTHS = [...new Set(VIDEOS.map(v => v.date.slice(0,7)))].sort().reverse();
+let activeMonth = 'all', query = '';
+let viewList = [];           // フィルタ後の表示順リスト
+let curIdx = -1;             // モーダルで開いている位置（viewList 内）
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDur = sec => { sec = Math.round(sec||0); return Math.floor(sec/60) + ':' + String(sec%60).padStart(2,'0'); };
+const dispTitle = v => (v.title && v.title.trim()) ? v.title : ((v.caption||'').split('\n').map(s=>s.trim()).find(Boolean) || '（タイトルなし）');
+const fmtDate = d => { const [y,m,dd] = d.split('-'); return `${y}年${Number(m)}月${Number(dd)}日`; };
+
+/* ---------- ヘッダー統計 ---------- */
+$('#statPosts').textContent = VIDEOS.length;
+if (VIDEOS.length){
+  $('#statRange').textContent = fmtDate(VIDEOS[VIDEOS.length-1].date) + ' 〜 ' + fmtDate(VIDEOS[0].date);
+}
+
+/* ---------- 月チップ ---------- */
+const chipsEl = $('#chips');
+function chipBtn(val, label){
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.textContent = label;
+  b.setAttribute('aria-pressed', String(activeMonth === val));
+  b.addEventListener('click', () => { activeMonth = val; syncChips(); render(); });
+  b.dataset.month = val;
+  return b;
+}
+chipsEl.appendChild(chipBtn('all', 'すべて'));
+MONTHS.forEach(m => chipsEl.appendChild(chipBtn(m, m.replace('-', '年') + '月')));
+function syncChips(){ chipsEl.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.month === activeMonth))); }
+
+/* ---------- 検索 ---------- */
+let searchTimer = null;
+$('#q').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); render(); }, 120);
+});
+
+/* ---------- 一覧描画 ---------- */
+function matches(v){
+  if (activeMonth !== 'all' && v.date.slice(0,7) !== activeMonth) return false;
+  if (query){
+    const hay = ((v.title||'') + '\n' + (v.caption||'')).toLowerCase();
+    if (!hay.includes(query)) return false;
+  }
+  return true;
+}
+function render(){
+  viewList = VIDEOS.filter(matches);
+  galleryEl.innerHTML = '';
+  const byMonth = new Map();
+  viewList.forEach(v => {
+    const m = v.date.slice(0,7);
+    if (!byMonth.has(m)) byMonth.set(m, []);
+    byMonth.get(m).push(v);
+  });
+  byMonth.forEach((items, m) => {
+    const sec = document.createElement('section');
+    sec.className = 'month';
+    const [y, mo] = m.split('-');
+    sec.innerHTML = `<div class="month-head"><h2>${y} / ${mo}</h2><span>${items.length} 本</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    items.forEach(v => grid.appendChild(cardEl(v)));
+    sec.appendChild(grid);
+    galleryEl.appendChild(sec);
+  });
+  emptyEl.classList.toggle('show', viewList.length === 0);
+  countEl.textContent = (activeMonth === 'all' && !query)
+    ? `全 ${viewList.length} 本`
+    : `${viewList.length} 本を表示中（全 ${VIDEOS.length} 本）`;
+}
+function cardEl(v){
+  const fig = document.createElement('figure');
+  fig.className = 'card';
+  const ar = (v.w && v.h) ? (v.w + ' / ' + v.h) : '16 / 9';
+  const capExcerpt = (v.title && v.caption) ? v.caption : '';
+  fig.innerHTML = `
+    <button class="thumb-btn" type="button" aria-label="動画を再生：${esc(dispTitle(v))}">
+      <span class="thumb" style="aspect-ratio:${ar};max-height:340px">
+        <img src="${esc(v.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <span class="play-mark"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg></span></span>
+        ${v.extraVideos && v.extraVideos.length ? '<span class="badge multi">動画2本</span>' : ''}
+        <span class="badge dur">${fmtDur(v.dur)}</span>
+      </span>
+    </button>
+    <figcaption class="card-body">
+      <span class="card-title">${esc(dispTitle(v))}</span>
+      ${capExcerpt ? `<span class="card-cap">${esc(capExcerpt)}</span>` : ''}
+      <span class="card-date">${esc(v.date)} ・ ${fmtDur(v.dur)}</span>
+    </figcaption>`;
+  fig.querySelector('.thumb-btn').addEventListener('click', () => openPlayer(viewList.indexOf(v)));
+  return fig;
+}
+
+/* ---------- プレイヤー ---------- */
+const overlay = $('#overlay'), ovVideos = $('#ovVideos'), ovScroll = $('#ovScroll');
+function stopVideos(){
+  ovVideos.querySelectorAll('video').forEach(el => { try{ el.pause(); }catch(e){} el.removeAttribute('src'); el.load(); });
+  ovVideos.innerHTML = '';
+}
+function openPlayer(idx){
+  if (idx < 0 || idx >= viewList.length) return;
+  curIdx = idx;
+  const v = viewList[idx];
+  stopVideos();
+  const urls = [v.video, ...((v.extraVideos) || [])];
+  urls.forEach((url, i) => {
+    if (urls.length > 1){
+      const lab = document.createElement('div');
+      lab.className = 'vid-label';
+      lab.textContent = `動画 ${i+1} / ${urls.length}`;
+      ovVideos.appendChild(lab);
+    }
+    const box = document.createElement('div');
+    box.className = 'vid-box';
+    const stage = document.createElement('div');
+    stage.className = 'vid-stage';
+    const el = document.createElement('video');
+    /* 標準コントロールは使わない。アプリ内ブラウザ（Android WebView）では
+       controlslist=nofullscreen が効かず全画面ボタンが残り、押すとフリーズ
+       するため、操作は下の自前コントロール（全画面ボタンなし）で行う。 */
+    el.controls = false; el.playsInline = true; el.preload = 'metadata';
+    el.setAttribute('playsinline', '');
+    el.setAttribute('disablepictureinpicture', '');
+    el.setAttribute('disableremoteplayback', '');
+    try{ el.disablePictureInPicture = true; }catch(e){}
+    try{ el.disableRemotePlayback = true; }catch(e){}
+    /* 万一全画面が始まったら即座に戻す（安全網） */
+    el.addEventListener('webkitbeginfullscreen', () => {
+      try{ if (el.webkitExitFullscreen) el.webkitExitFullscreen(); }catch(e){}
+    });
+    el.setAttribute('referrerpolicy', 'no-referrer');
+    try{ el.referrerPolicy = 'no-referrer'; }catch(e){}
+    el.poster = v.thumb; el.src = url;
+    if (v.h > v.w) el.className = 'portrait';
+    stage.appendChild(el);
+
+    /* 中央の再生ボタン（停止中だけ表示） */
+    const bigPlay = document.createElement('button');
+    bigPlay.type = 'button';
+    bigPlay.className = 'vid-bigplay';
+    bigPlay.setAttribute('aria-label', '再生');
+    bigPlay.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+    stage.appendChild(bigPlay);
+    box.appendChild(stage);
+
+    /* ---- 自前コントロール: 再生/一時停止・シーク・時間・ミュート ---- */
+    const ICON_PLAY  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+    const ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg>';
+    const ICON_VOL   = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.2v5.6h3.8L12 19.4V4.6L6.8 9.2H3zm13.4 2.8a3.4 3.4 0 0 0-1.9-3.1v6.2a3.4 3.4 0 0 0 1.9-3.1zm-1.9-6.5v2.1a5.4 5.4 0 0 1 0 8.8v2.1a7.4 7.4 0 0 0 0-13z"/></svg>';
+    const ICON_MUTE  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.2v5.6h3.8L12 19.4V4.6L6.8 9.2H3zm14.6 2.8l2.5-2.5-1.2-1.2-2.5 2.5-2.5-2.5-1.2 1.2 2.5 2.5-2.5 2.5 1.2 1.2 2.5-2.5 2.5 2.5 1.2-1.2-2.5-2.5z"/></svg>';
+    const ctrl = document.createElement('div');
+    ctrl.className = 'vctrl';
+    const playBtn = document.createElement('button');
+    playBtn.type = 'button'; playBtn.className = 'vc-btn';
+    const seek = document.createElement('input');
+    seek.type = 'range'; seek.className = 'vc-seek';
+    seek.min = '0'; seek.max = '1000'; seek.value = '0'; seek.step = '1';
+    seek.setAttribute('aria-label', '再生位置');
+    const timeEl = document.createElement('span');
+    timeEl.className = 'vc-time';
+    timeEl.textContent = '0:00 / ' + fmtDur(v.dur);
+    const muteBtn = document.createElement('button');
+    muteBtn.type = 'button'; muteBtn.className = 'vc-btn';
+    ctrl.appendChild(playBtn);
+    ctrl.appendChild(seek);
+    ctrl.appendChild(timeEl);
+    ctrl.appendChild(muteBtn);
+    box.appendChild(ctrl);
+
+    let seeking = false;
+    function syncPlayUI(){
+      const stopped = el.paused || el.ended;
+      playBtn.innerHTML = stopped ? ICON_PLAY : ICON_PAUSE;
+      playBtn.setAttribute('aria-label', stopped ? '再生' : '一時停止');
+      bigPlay.classList.toggle('show', stopped);
+    }
+    function syncMuteUI(){
+      muteBtn.innerHTML = el.muted ? ICON_MUTE : ICON_VOL;
+      muteBtn.setAttribute('aria-label', el.muted ? 'ミュート解除' : 'ミュート');
+    }
+    function syncTime(){
+      const cur = isFinite(el.currentTime) ? el.currentTime : 0;
+      const dur = (isFinite(el.duration) && el.duration > 0) ? el.duration : (v.dur || 0);
+      timeEl.textContent = fmtDur(cur) + ' / ' + fmtDur(dur);
+      if (!seeking && isFinite(el.duration) && el.duration > 0){
+        seek.value = String(Math.round(cur / el.duration * 1000));
+      }
+    }
+    function togglePlay(){
+      if (el.paused || el.ended){ const p = el.play(); if (p && p.catch) p.catch(() => {}); }
+      else el.pause();
+    }
+    playBtn.addEventListener('click', togglePlay);
+    bigPlay.addEventListener('click', togglePlay);
+    el.addEventListener('click', togglePlay);
+    el.addEventListener('play', syncPlayUI);
+    el.addEventListener('pause', syncPlayUI);
+    el.addEventListener('ended', syncPlayUI);
+    el.addEventListener('timeupdate', syncTime);
+    el.addEventListener('loadedmetadata', syncTime);
+    el.addEventListener('durationchange', syncTime);
+    el.addEventListener('volumechange', syncMuteUI);
+    seek.addEventListener('pointerdown', () => { seeking = true; });
+    seek.addEventListener('pointerup', () => { seeking = false; syncTime(); });
+    seek.addEventListener('change', () => { seeking = false; syncTime(); });
+    seek.addEventListener('input', () => {
+      if (isFinite(el.duration) && el.duration > 0){
+        el.currentTime = (Number(seek.value) / 1000) * el.duration;
+        timeEl.textContent = fmtDur(el.currentTime) + ' / ' + fmtDur(el.duration);
+      }
+    });
+    muteBtn.addEventListener('click', () => { el.muted = !el.muted; syncMuteUI(); });
+    syncPlayUI(); syncMuteUI(); syncTime();
+    const errNote = document.createElement('p');
+    errNote.className = 'vid-note';
+    errNote.textContent = '動画を読み込めませんでした。通信環境を確認するか、下の「動画を直接開く」または上の「Xで元投稿を見る」から再生してみてください。';
+    el.addEventListener('error', () => errNote.classList.add('show'));
+    box.appendChild(errNote);
+    const actions = document.createElement('div');
+    actions.className = 'vid-actions';
+    const openLink = document.createElement('a');
+    openLink.className = 'fs-btn';
+    openLink.href = url;
+    openLink.target = '_blank';
+    openLink.rel = 'noopener';
+    openLink.textContent = '動画を直接開く ↗';
+    actions.appendChild(openLink);
+    box.appendChild(actions);
+    ovVideos.appendChild(box);
+  });
+  const first = ovVideos.querySelector('video');
+  if (first){ const p = first.play(); if (p && p.catch) p.catch(() => {}); }
+  $('#ovTitle').textContent = dispTitle(v);
+  const capEl = $('#ovCap');
+  capEl.textContent = v.caption || '';
+  capEl.style.display = capEl.textContent ? '' : 'none';
+  $('#ovDate').textContent = fmtDate(v.date);
+  $('#ovDur').textContent = '再生時間 ' + fmtDur(v.dur);
+  $('#ovXLink').href = v.postUrl;
+  $('#ovCounter').textContent = (idx + 1) + ' / ' + viewList.length;
+  $('#btnPrev').disabled = idx <= 0;
+  $('#btnNext').disabled = idx >= viewList.length - 1;
+  ovScroll.scrollTop = 0;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePlayer(){
+  stopVideos();
+  curIdx = -1;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+/* 安全網: どの経路で全画面化されても（Firefox等 controlslist 非対応環境の
+   標準ボタンなど）即座に解除し、フリーズしたままにしない */
+function exitAnyFullscreen(){
+  try{
+    if (document.fullscreenElement && document.exitFullscreen){
+      const r = document.exitFullscreen();
+      if (r && r.catch) r.catch(() => {});
+    } else if (document.webkitFullscreenElement && document.webkitExitFullscreen){
+      document.webkitExitFullscreen();
+    }
+  }catch(e){}
+}
+document.addEventListener('fullscreenchange', exitAnyFullscreen);
+document.addEventListener('webkitfullscreenchange', exitAnyFullscreen);
+$('#btnClose').addEventListener('click', closePlayer);
+$('#btnPrev').addEventListener('click', () => openPlayer(curIdx - 1));
+$('#btnNext').addEventListener('click', () => openPlayer(curIdx + 1));
+overlay.addEventListener('click', e => { if (e.target === overlay || e.target === ovScroll) closePlayer(); });
+document.addEventListener('keydown', e => {
+  if (!overlay.classList.contains('open')) return;
+  if (e.key === 'Escape') closePlayer();
+  else if (e.key === 'ArrowLeft' && curIdx > 0) openPlayer(curIdx - 1);
+  else if (e.key === 'ArrowRight' && curIdx < viewList.length - 1) openPlayer(curIdx + 1);
+});
+
+render();
+</script>
+</body>
+</html>
